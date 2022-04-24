@@ -21,18 +21,12 @@ public class DefensiveHeroBehavior implements HeroBehavior {
     public int sortEnemies(InteractionAttributes m1, InteractionAttributes m2) {
         InteractionAttributes currentTarget = m1.getHero().getCurrentTarget();
         int currentTargetId = -1;
-        if(currentTarget != null) {
+        if (currentTarget != null) {
             currentTargetId = currentTarget.getEntity().getId();
         }
         double baseDist1 = m1.getDistanceToBase();
         double baseDist2 = m2.getDistanceToBase();
-        if (m1.getEntity().getFaction() == Faction.ENEMY && m2.getEntity().getFaction() == Faction.ENEMY) {
-            return 0;
-        } else if (m1.getEntity().getFaction() == Faction.ENEMY) {
-            return -1;
-        } else if (m2.getEntity().getFaction() == Faction.ENEMY) {
-            return 1;
-        }
+
         // only one close enough
         if (baseDist1 > GameParameters.FIGHTING_AREA && baseDist2 > GameParameters.FIGHTING_AREA) {
             // irrelevant
@@ -70,12 +64,12 @@ public class DefensiveHeroBehavior implements HeroBehavior {
     public boolean considerEnemy(InteractionAttributes m) {
         Entity entity = m.getEntity();
         Faction faction = entity.getFaction();
-        boolean consider = (faction == Faction.MONSTER && entity.getThreatFor() == Faction.OWN && m.getDistanceToBase() < GameParameters.FIGHTING_AREA) ||
-                (faction == Faction.ENEMY && m.getDistanceToBase() < 10000);
         if (faction == Faction.ENEMY) {
-            Log.log(this, entity.getId() + " " + consider);
+            if (m.getDistanceToBase() < GameParameters.HUNTING_AREA) {
+                Flags.getInstance().raiseFlag(Flags.BASE_UNDER_ATTACK);
+            }
         }
-        return consider;
+        return (faction == Faction.MONSTER && entity.getThreatFor() == Faction.OWN && m.getDistanceToBase() < GameParameters.FIGHTING_AREA);
     }
 
     @Override
@@ -104,19 +98,6 @@ public class DefensiveHeroBehavior implements HeroBehavior {
                 mana >= Constants.SPELL_COST) {
             round.reduceMana(Constants.SPELL_COST);
             return HeroCommands.castWindTowards(enemyBase, "Woosh");
-        } else if (faction == Faction.ENEMY) {
-            if (interaction.getDistanceToBase() < GameParameters.HUNTING_AREA) {
-                Flags.getInstance().raiseFlag(Flags.BASE_UNDER_ATTACK);
-            }
-            if (!hero.isShielded() && mana >= Constants.SPELL_COST * 5) {
-                round.reduceMana(Constants.SPELL_COST);
-                return HeroCommands.shield(hero.getId());
-            } else if (interaction.getDistanceToHero() < Constants.CONTROL_RANGE && mana >= Constants.SPELL_COST) {
-                round.reduceMana(Constants.SPELL_COST);
-                return HeroCommands.control(interaction.getEntity().getId(), enemyBase, "Go home!");
-            } else {
-                return HeroCommands.move(interaction.getRendezvous2(), "No trespassing");
-            }
         } else {
             int reachedInRounds = Helpers.timeToCollision(hero, interaction.getEntity());
             Coordinate rendezvous = interaction.getEntity().predictPosition(reachedInRounds + 1);

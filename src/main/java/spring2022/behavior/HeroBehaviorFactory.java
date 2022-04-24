@@ -9,8 +9,8 @@ public class HeroBehaviorFactory {
                 return new ManaHunterHeroBehavior();
             case DESTROYER:
                 return new DestroyerHeroBehavior();
-            case SABOTEUR:
-                return new SaboteurHeroBehavior();
+            case INTERCEPTOR:
+                return new InterceptorHeroBehavior();
             default:
                 throw new IllegalArgumentException();
         }

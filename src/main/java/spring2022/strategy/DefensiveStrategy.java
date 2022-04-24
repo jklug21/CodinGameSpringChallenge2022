@@ -18,7 +18,7 @@ public class DefensiveStrategy implements GameStrategy {
     @Override
     public void adaptBehavior(List<HeroBehaviorContainer> heroBehaviors) {
         if (Flags.getInstance().istFlagRaised(Flags.BASE_UNDER_ATTACK)) {
-            heroBehaviors.get(2).setTempClass(HeroClass.DEFENDER);
+            heroBehaviors.get(2).setTempClass(HeroClass.INTERCEPTOR);
             heroBehaviors.get(2).setEndCondition(() -> !Flags.getInstance().istFlagRaised(Flags.BASE_UNDER_ATTACK));
         }
     }

@@ -7,7 +7,7 @@ public enum HeroClass {
     DEFENDER(DefensiveHeroBehavior.class),
     MANA_HUNTER(ManaHunterHeroBehavior.class),
     DESTROYER(DefensiveHeroBehavior.class),
-    SABOTEUR(SaboteurHeroBehavior.class);
+    INTERCEPTOR(InterceptorHeroBehavior.class);
 
     private final Class<? extends HeroBehavior> heroBehaviorClass;
 
