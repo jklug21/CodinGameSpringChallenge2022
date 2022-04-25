@@ -20,6 +20,7 @@ public class Entity {
     private final Faction threatFor;
 
     public Entity(EntityData data) {
+        GameState state = GameState.get();
         this.id = data.getId();
         this.faction = data.getFaction();
         this.position = new Coordinate(data.getX(), data.getY());
@@ -28,10 +29,11 @@ public class Entity {
         this.health = data.getHealth();
         this.velocity = new Coordinate(data.getVx(), data.getVy());
         this.nearBase = data.getNearBase();
-        this.threatFor = data.getThreatFor();
+        this.threatFor = Helpers.calculateThreatFor(data.getX(), data.getY(), data.getVx(), data.getVy(), state.getEnemyBase(), state.getOwnBase());
     }
 
     public Entity(int id, Faction faction, int x, int y, int shieldLife, int isControlled, int health, int vx, int vy, int nearBase, Faction threatFor) {
+        GameState state = GameState.get();
         this.id = id;
         this.faction = faction;
         this.position = new Coordinate(x, y);
@@ -40,7 +42,7 @@ public class Entity {
         this.health = health;
         this.velocity = new Coordinate(vx, vy);
         this.nearBase = nearBase;
-        this.threatFor = threatFor;
+        this.threatFor = Helpers.calculateThreatFor(x, y, vx, vy, state.getEnemyBase(), state.getOwnBase());
     }
 
     public boolean isShielded() {

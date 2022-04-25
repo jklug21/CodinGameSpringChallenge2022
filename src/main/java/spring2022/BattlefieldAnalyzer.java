@@ -28,7 +28,7 @@ public class BattlefieldAnalyzer {
         } else {
             Flags.getInstance().lowerFlag(Flags.HARD_DEFENSE_NEEDED);
         }
-        List<Entity> attackingHeroes = state.getOppHeroes().stream().filter(e -> e.distanceTo(ownBase) < 10000).collect(Collectors.toList());
+        List<Entity> attackingHeroes = state.getOppHeroes().stream().filter(e -> e.distanceTo(ownBase) < 8000).collect(Collectors.toList());
         if (attackingHeroes.size() > 0) {
             interceptHero = attackingHeroes.get(0);
             Flags.getInstance().raiseFlag(Flags.BASE_UNDER_ATTACK);

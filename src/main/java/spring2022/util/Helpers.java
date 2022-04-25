@@ -53,28 +53,6 @@ public class Helpers {
                         }
                     }
                 }
-        /*} else if (vx == 0) {
-            if (vy < 0) {
-                if (x <= 5000) {
-                    if (ownBase.getX() == 0) {
-                        this.threatFor = Faction.OWN;
-                    } else if (enemyBase.getX() == 0) {
-                        this.threatFor = Faction.ENEMY;
-                    }
-                } else {
-                    this.threatFor = Faction.MONSTER;
-                }
-            } else {
-                if (x >= 4000) {
-                    if (ownBase.getX() == 0) {
-                        this.threatFor = Faction.ENEMY;
-                    } else if (enemyBase.getX() == 0) {
-                        this.threatFor = Faction.OWN;
-                    }
-                } else {
-                    this.threatFor = Faction.MONSTER;
-                }
-            }*/
             } else {
                 Faction potentialThreat;
                 // which base is it heading
@@ -94,15 +72,23 @@ public class Helpers {
 
                 // y = kx + d
                 // calculate k
-                double k = (double) vx / (double) vy;
+                double k = (double) vy / (double) vx;
                 double d = y - k * x;
 
+                Coordinate base;
                 if (potentialThreat == Faction.ENEMY) {
-                    double ye = k * enemyBase.getX() + d;
-                    double xe = (enemyBase.getY() - d) / k;
+                    base = enemyBase;
                 } else {
-                    double ye = k * ownBase.getX() + d;
-                    double xe = (ownBase.getY() - d) / k;
+                    base = ownBase;
+                }
+
+                double ye = k * base.getX() + d;
+                double xe = (base.getY() - d) / k;
+                if (base.getX() == 0 && xe > 0 && xe < 5000 ||
+                        base.getX() != 0 && xe < base.getX() && xe > base.getX() - 5000 ||
+                        base.getY() == 0 && ye > 0 && ye < 5000 ||
+                        base.getY() != 0 && ye < base.getY() && ye > base.getY() - 5000) {
+                    threatFor = potentialThreat;
                 }
             }
         }
