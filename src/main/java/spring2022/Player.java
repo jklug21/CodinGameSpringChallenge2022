@@ -30,7 +30,8 @@ class Player {
         DerivedScanner scanner = new DerivedScanner(in);
         GameStrategy strategy = new MixedStrategy();
         InitialData initialData = scanner.getObjectFromInput(InitialData.class);
-        GameState state = new GameState(initialData, strategy.getInitialBehavior());
+        BattlefieldAnalyzer analyzer = new BattlefieldAnalyzer();
+        GameState state = GameState.init(initialData, strategy.getInitialBehavior(), analyzer);
 
         // game loop
         //noinspection InfiniteLoopStatement
@@ -48,12 +49,22 @@ class Player {
             }
             state.updateState(roundState, entities);
 
+            analyzer.analyzeBattlefield(state);
+
             Hero[] heroes = state.getMyHeroes().values().toArray(new Hero[0]);
             for (int i = 0; i < state.getHeroesPerPlayer(); i++) {
                 Hero hero = heroes[i];
                 HeroBehavior heroBehavior = heroBehaviors.get(hero.getId() % 3).getBehavior();
-                if (hero.getCurrentTarget() != null && state.getMonsters().stream().noneMatch(m -> m.getId() == hero.getCurrentTarget().getEntity().getId())) {
-                    hero.clearTarget();
+                int currentTargetId;
+                if(hero.getCurrentTarget() == null) {
+                    currentTargetId = -1;
+                } else {
+                    if (state.getMonsters().stream().noneMatch(m -> m.getId() == hero.getCurrentTarget().getEntity().getId())) {
+                        hero.clearTarget();
+                        currentTargetId = -1;
+                    } else {
+                        currentTargetId = hero.getCurrentTarget().getEntity().getId();
+                    }
                 }
 
                 AttributeMapper mapper = new AttributeMapper(state, hero);
@@ -61,7 +72,7 @@ class Player {
                 Optional<InteractionAttributes> selectedMonster = Stream.concat(state.getMonsters().stream(),
                         state.getOppHeroes().stream())
                         .map(mapper::calculateAttributes)
-                        .filter(a -> !a.isTargetedByOtherHero())
+                        .filter(a -> !a.isTargetedByOtherHero() || a.getEntity().getId() == currentTargetId)
                         .filter(heroBehavior::considerEnemy)
                         .min(heroBehavior::sortEnemies);
 
@@ -72,7 +83,7 @@ class Player {
 
                 hero.setCurrentTarget(target);
                 if (target != null) {
-                    Log.log("main", hero.getId() + ": " + target.debugShort(hero));
+                    Log.log("main", hero.getId() + " [" + heroBehavior.getClass().getSimpleName() + "]: " + target.debugShort(hero));
                     hero.setNextAction(heroBehavior.getNextAction(target));
                 }
 

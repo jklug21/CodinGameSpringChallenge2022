@@ -2,15 +2,18 @@ package spring2022.behavior;
 
 import spring2022.GameParameters;
 import spring2022.GameState;
+import spring2022.domain.Entity;
 import spring2022.domain.Faction;
+import spring2022.domain.Hero;
 import spring2022.domain.InteractionAttributes;
 import spring2022.util.Constants;
 import spring2022.util.Coordinate;
+import spring2022.util.Helpers;
 import spring2022.util.HeroCommands;
 import spring2022.util.Log;
 
 public class ManaHunterHeroBehavior implements HeroBehavior {
-    public static final int[] POS_PRESET = {7000, 3000};
+    public static final int[] POS_PRESET = {8000, 1200};
 
     @Override
     public int sortEnemies(InteractionAttributes m1, InteractionAttributes m2) {
@@ -38,7 +41,12 @@ public class ManaHunterHeroBehavior implements HeroBehavior {
 
     @Override
     public boolean considerEnemy(InteractionAttributes m) {
-        return m.getEntity().getFaction() == Faction.MONSTER;
+        Hero hero = m.getHero();
+        Entity entity = m.getEntity();
+        int roundsToStrike = (int) ((m.getDistanceToBase() - 300) / 400);
+        int timeToCollision = Helpers.timeToCollision(hero, entity);
+        return entity.getFaction() == Faction.MONSTER && timeToCollision < roundsToStrike &&
+                (entity.getThreatFor() != Faction.ENEMY);
     }
 
     @Override
@@ -50,14 +58,30 @@ public class ManaHunterHeroBehavior implements HeroBehavior {
 
     @Override
     public Runnable getNextAction(InteractionAttributes interactionAttributes) {
+        GameState state = GameState.get();
+        Coordinate enemyBase = state.getEnemyBase();
+        Entity entity = interactionAttributes.getEntity();
+        Hero hero = interactionAttributes.getHero();
         if (interactionAttributes.getDistanceToBase() < GameParameters.CRITICAL_AREA) {
-            int heroId = interactionAttributes.getHero().getId();
+            int heroId = hero.getId();
             Log.log(this, heroId + ": Switching to " + HeroClass.DEFENDER);
-            GameState state = interactionAttributes.getState();
             HeroBehaviorContainer behavior = state.getHeroBehaviors().get(heroId % 3);
             behavior.setTempClass(HeroClass.DEFENDER);
             behavior.setEndCondition(() -> state.getMonsters().stream()
                     .noneMatch(m -> m.getId() == interactionAttributes.getEntity().getId()));
+        } else if (entity.getHealth() > 10 && state.getRoundState().getMyMana() > 100 && interactionAttributes.getDistanceToHero() < 2200) {
+            if (entity.getThreatFor() == Faction.ENEMY && entity.distanceTo(enemyBase) < 6000) {
+                state.getRoundState().reduceMana(Constants.SPELL_COST);
+                hero.setCurrentTarget(InteractionAttributes.NVL);
+                return HeroCommands.shield(entity.getId());
+            } else if (interactionAttributes.getDistanceToBase() > 5000) {
+                state.getRoundState().reduceMana(Constants.SPELL_COST);
+                hero.setCurrentTarget(InteractionAttributes.NVL);
+                int dx = (int) (Math.random() * 5000d);
+                int dy = (int) (Math.random() * 5000d);
+                Coordinate target = new Coordinate(Math.abs(enemyBase.getX() - dx), Math.abs(enemyBase.getY() - dy));
+                return HeroCommands.control(entity.getId(), target, "Attack, my minion!");
+            }
         }
         return HeroCommands.move(interactionAttributes.getRendezvous(), interactionAttributes.getEntity().getId());
     }

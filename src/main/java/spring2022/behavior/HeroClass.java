@@ -4,6 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum HeroClass {
+    HARD_DEFENDER(HardDefensiveHeroBehavior.class),
     DEFENDER(DefensiveHeroBehavior.class),
     MANA_HUNTER(ManaHunterHeroBehavior.class),
     DESTROYER(DefensiveHeroBehavior.class),

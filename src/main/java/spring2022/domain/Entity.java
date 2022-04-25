@@ -1,8 +1,10 @@
 package spring2022.domain;
 
 import lombok.Getter;
+import spring2022.GameState;
 import spring2022.io.EntityData;
 import spring2022.util.Coordinate;
+import spring2022.util.Helpers;
 
 @Getter
 public class Entity {

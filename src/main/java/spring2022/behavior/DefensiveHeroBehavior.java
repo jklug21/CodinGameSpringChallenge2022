@@ -64,12 +64,16 @@ public class DefensiveHeroBehavior implements HeroBehavior {
     public boolean considerEnemy(InteractionAttributes m) {
         Entity entity = m.getEntity();
         Faction faction = entity.getFaction();
-        if (faction == Faction.ENEMY) {
-            if (m.getDistanceToBase() < GameParameters.HUNTING_AREA) {
-                Flags.getInstance().raiseFlag(Flags.BASE_UNDER_ATTACK);
-            }
+        Hero hero = m.getHero();
+        int roundsToStrike = (int) ((m.getDistanceToBase() - 300) / 400);
+        int timeToCollision = Helpers.timeToCollision(hero, m.getEntity());
+        if(!(timeToCollision < roundsToStrike || timeToCollision <= 1)) {
+            Log.log(this, "Ignoring " + m.getEntity().getId() + " " + timeToCollision + " " + roundsToStrike);
         }
-        return (faction == Faction.MONSTER && entity.getThreatFor() == Faction.OWN && m.getDistanceToBase() < GameParameters.FIGHTING_AREA);
+        return (faction == Faction.MONSTER &&
+                entity.getThreatFor() == Faction.OWN &&
+                m.getDistanceToBase() < GameParameters.FIGHTING_AREA &&
+                (timeToCollision < roundsToStrike || timeToCollision <= 1));
     }
 
     @Override
@@ -81,10 +85,10 @@ public class DefensiveHeroBehavior implements HeroBehavior {
 
     @Override
     public Runnable getNextAction(InteractionAttributes interaction) {
+        GameState state = GameState.get();
         if (interaction == null) {
             return null;
         }
-        GameState state = interaction.getState();
         RoundState round = state.getRoundState();
         int mana = round.getMyMana();
         Coordinate enemyBase = state.getEnemyBase();
@@ -98,9 +102,13 @@ public class DefensiveHeroBehavior implements HeroBehavior {
                 mana >= Constants.SPELL_COST) {
             round.reduceMana(Constants.SPELL_COST);
             return HeroCommands.castWindTowards(enemyBase, "Woosh");
+        } else if (Flags.getInstance().isFlagRaised(Flags.BASE_UNDER_ATTACK | Flags.WIND_STRIKE_POSSIBLE) &&
+                state.getAnalyzer().getCriticalMonsters().stream().anyMatch(m -> m.distanceTo(hero) < Constants.WIND_RANGE - 400)) {
+            round.reduceMana(Constants.SPELL_COST);
+            return HeroCommands.castWindTowards(enemyBase, "Woosh");
         } else {
             int reachedInRounds = Helpers.timeToCollision(hero, interaction.getEntity());
-            Coordinate rendezvous = interaction.getEntity().predictPosition(reachedInRounds + 1);
+            Coordinate rendezvous = interaction.getEntity().predictPosition(reachedInRounds);
             return HeroCommands.move(rendezvous, interaction.getEntity().getId());
         }
     }

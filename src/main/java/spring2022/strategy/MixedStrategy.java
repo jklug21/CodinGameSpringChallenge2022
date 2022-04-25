@@ -1,9 +1,10 @@
 package spring2022.strategy;
 
-import java.util.ArrayList;
-import java.util.List;
 import spring2022.behavior.HeroBehaviorContainer;
 import spring2022.behavior.HeroClass;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MixedStrategy implements GameStrategy {
     @Override
@@ -17,9 +18,19 @@ public class MixedStrategy implements GameStrategy {
 
     @Override
     public void adaptBehavior(List<HeroBehaviorContainer> heroBehaviors) {
-        if (Flags.getInstance().istFlagRaised(Flags.BASE_UNDER_ATTACK)) {
+        if (Flags.getInstance().isFlagRaised(Flags.BASE_UNDER_ATTACK)) {
             heroBehaviors.get(2).setTempClass(HeroClass.INTERCEPTOR);
-            heroBehaviors.get(2).setEndCondition(() -> !Flags.getInstance().istFlagRaised(Flags.BASE_UNDER_ATTACK));
+            heroBehaviors.get(2).setEndCondition(() -> !Flags.getInstance().isFlagRaised(Flags.BASE_UNDER_ATTACK));
+        }
+        if (Flags.getInstance().isFlagRaised(Flags.HARD_DEFENSE_NEEDED)) {
+            heroBehaviors.get(0).setTempClass(HeroClass.HARD_DEFENDER);
+            heroBehaviors.get(0).setEndCondition(() -> !Flags.getInstance().isFlagRaised(Flags.HARD_DEFENSE_NEEDED));
+            heroBehaviors.get(1).setTempClass(HeroClass.DEFENDER);
+            heroBehaviors.get(1).setEndCondition(() -> !Flags.getInstance().isFlagRaised(Flags.HARD_DEFENSE_NEEDED));
+        }
+        if (Flags.getInstance().isFlagRaised(Flags.SECOND_PHASE)) {
+            heroBehaviors.get(1).setTempClass(HeroClass.DESTROYER);
+            heroBehaviors.get(1).setEndCondition(() -> false);
         }
     }
 }

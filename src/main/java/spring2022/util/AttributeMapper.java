@@ -17,6 +17,7 @@ public class AttributeMapper {
 
     public InteractionAttributes calculateAttributes(Entity entity) {
         double distanceToBase = entity.distanceTo(state.getOwnBase());
+        double distanceToEnemyBase = entity.distanceTo(state.getEnemyBase());
         double distanceToHero = entity.getPosition().distanceTo(hero.getPosition());
         boolean targetedByOtherHero = state.getMyHeroes().values().stream()
                 .filter(h -> h.getId() != hero.getId())
@@ -36,6 +37,6 @@ public class AttributeMapper {
                     .filter(m -> m.distanceTo(entity) < Constants.MELEE_RANGE * 2)
                     .count();
         }
-        return new InteractionAttributes(entity, hero, state, distanceToBase, monsterSpeed, distanceToHero, targetedByOtherHero, rendezvous, rendezvous2, buddyCount);
+        return new InteractionAttributes(entity, hero, distanceToBase, distanceToEnemyBase, monsterSpeed, distanceToHero, targetedByOtherHero, rendezvous, rendezvous2, buddyCount);
     }
 }
