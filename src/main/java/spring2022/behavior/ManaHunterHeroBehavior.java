@@ -2,6 +2,7 @@ package spring2022.behavior;
 
 import spring2022.GameParameters;
 import spring2022.GameState;
+import spring2022.commands.HeroCommand;
 import spring2022.domain.Entity;
 import spring2022.domain.Faction;
 import spring2022.domain.Hero;
@@ -9,7 +10,7 @@ import spring2022.domain.InteractionAttributes;
 import spring2022.util.Constants;
 import spring2022.util.Coordinate;
 import spring2022.util.Helpers;
-import spring2022.util.HeroCommands;
+import spring2022.commands.HeroCommands;
 import spring2022.util.Log;
 
 public class ManaHunterHeroBehavior implements HeroBehavior {
@@ -57,7 +58,7 @@ public class ManaHunterHeroBehavior implements HeroBehavior {
     }
 
     @Override
-    public Runnable getNextAction(InteractionAttributes interactionAttributes) {
+    public HeroCommand getNextAction(InteractionAttributes interactionAttributes) {
         GameState state = GameState.get();
         Coordinate enemyBase = state.getEnemyBase();
         Entity entity = interactionAttributes.getEntity();
@@ -67,7 +68,7 @@ public class ManaHunterHeroBehavior implements HeroBehavior {
             Log.log(this, heroId + ": Switching to " + HeroClass.DEFENDER);
             HeroBehaviorContainer behavior = state.getHeroBehaviors().get(heroId % 3);
             behavior.setTempClass(HeroClass.DEFENDER);
-            behavior.setEndCondition(() -> state.getMonsters().stream()
+            behavior.setEndCondition(() -> state.getMonsters().values().stream()
                     .noneMatch(m -> m.getId() == interactionAttributes.getEntity().getId()));
         } else if (entity.getHealth() > 10 && state.getRoundState().getMyMana() > 100 && interactionAttributes.getDistanceToHero() < 2200) {
             if (entity.getThreatFor() == Faction.ENEMY && entity.distanceTo(enemyBase) < 6000) {

@@ -1,23 +1,25 @@
 package spring2022.domain;
 
 import lombok.Getter;
+import lombok.Setter;
 import spring2022.GameState;
 import spring2022.io.EntityData;
 import spring2022.util.Coordinate;
 import spring2022.util.Helpers;
 
 @Getter
+@Setter
 public class Entity {
     public static final Entity NVL = new Entity(0, Faction.NVL, 0, 0, 0, 0, 0, 0, 0, 0, Faction.NVL);
     private final int id;
     private final Faction faction;
-    private final Coordinate position;
     private final int shieldLife;
     private final int isControlled;
     private final int health;
     private final Coordinate velocity;
     private final int nearBase;
     private final Faction threatFor;
+    private Coordinate position;
 
     public Entity(EntityData data) {
         GameState state = GameState.get();

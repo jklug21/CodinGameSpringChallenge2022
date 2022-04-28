@@ -1,13 +1,13 @@
 package spring2022;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import spring2022.domain.Entity;
 import spring2022.strategy.Flags;
 import spring2022.util.Coordinate;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Getter
 public class BattlefieldAnalyzer {
@@ -16,7 +16,7 @@ public class BattlefieldAnalyzer {
 
     public void analyzeBattlefield(GameState state) {
         criticalMonsters = new ArrayList<>();
-        List<Entity> monsters = state.getMonsters();
+        Collection<Entity> monsters = state.getMonsters().values();
         Coordinate ownBase = state.getOwnBase();
         List<Entity> closestMonsters = monsters.stream()
                 .sorted((m1, m2) -> (int) (m1.distanceTo(ownBase) - m2.distanceTo(ownBase)))
@@ -28,7 +28,7 @@ public class BattlefieldAnalyzer {
         } else {
             Flags.getInstance().lowerFlag(Flags.HARD_DEFENSE_NEEDED);
         }
-        List<Entity> attackingHeroes = state.getOppHeroes().stream().filter(e -> e.distanceTo(ownBase) < 8000).collect(Collectors.toList());
+        List<Entity> attackingHeroes = state.getOppHeroes().values().stream().filter(e -> e.distanceTo(ownBase) < 8000).collect(Collectors.toList());
         if (attackingHeroes.size() > 0) {
             interceptHero = attackingHeroes.get(0);
             Flags.getInstance().raiseFlag(Flags.BASE_UNDER_ATTACK);
@@ -38,11 +38,11 @@ public class BattlefieldAnalyzer {
                 Flags.getInstance().lowerFlag(Flags.WIND_STRIKE_POSSIBLE);
             }
         } else {
-            if (interceptHero != null && state.getOppHeroes().stream().filter(e -> e.distanceTo(ownBase) > 10000).anyMatch(e -> e.getId() == interceptHero.getId())) {
+            if (interceptHero != null && state.getOppHeroes().values().stream().filter(e -> e.distanceTo(ownBase) > 10000).anyMatch(e -> e.getId() == interceptHero.getId())) {
                 Flags.getInstance().lowerFlag(Flags.BASE_UNDER_ATTACK);
             }
         }
-        if(state.getRound() == 60) {
+        if (state.getRound() == 60) {
             Flags.getInstance().raiseFlag(Flags.SECOND_PHASE);
         }
     }

@@ -1,16 +1,16 @@
 package spring2022.behavior;
 
+import java.util.Comparator;
+import java.util.Optional;
 import spring2022.GameState;
+import spring2022.commands.HeroCommand;
 import spring2022.domain.Entity;
 import spring2022.domain.Faction;
 import spring2022.domain.Hero;
 import spring2022.domain.InteractionAttributes;
 import spring2022.util.Constants;
 import spring2022.util.Coordinate;
-import spring2022.util.HeroCommands;
-
-import java.util.Comparator;
-import java.util.Optional;
+import spring2022.commands.HeroCommands;
 
 public class InterceptorHeroBehavior implements HeroBehavior {
     @Override
@@ -20,7 +20,7 @@ public class InterceptorHeroBehavior implements HeroBehavior {
 
     @Override
     public boolean considerEnemy(InteractionAttributes m) {
-        return true;
+        return m.getDistanceToHero() <= 2200;
     }
 
     @Override
@@ -29,17 +29,14 @@ public class InterceptorHeroBehavior implements HeroBehavior {
     }
 
     @Override
-    public Runnable getNextAction(InteractionAttributes interactionAttributes) {
+    public HeroCommand getNextAction(InteractionAttributes interactionAttributes) {
         GameState state = GameState.get();
         Entity target = state.getAnalyzer().getInterceptHero();
         Hero hero = interactionAttributes.getHero();
         Coordinate base = state.getOwnBase();
         Coordinate enemyBase = state.getEnemyBase();
         if (state.getRoundState().getMyMana() >= 50) {
-            if (!hero.isShielded()) {
-                return HeroCommands.shield(hero.getId());
-            }
-            Optional<Entity> closestMonster = state.getMonsters().stream()
+            Optional<Entity> closestMonster = state.getMonsters().values().stream()
                     .filter(e -> e.getThreatFor() != Faction.MONSTER)
                     .min(getEntityComparator(hero, base));
             if (closestMonster.isPresent()) {
@@ -60,20 +57,20 @@ public class InterceptorHeroBehavior implements HeroBehavior {
 
         double distanceToBase = target.distanceTo(base);
         if (distanceToBase < 4000) {
-            int x =  (int) ((target.getPosition().getX() / distanceToBase) * 5000);
-            int y =  (int) ((target.getPosition().getY() / distanceToBase) * 5000);
+            int x = (int) ((target.getPosition().getX() / distanceToBase) * 5000);
+            int y = (int) ((target.getPosition().getY() / distanceToBase) * 5000);
             return HeroCommands.move(new Coordinate(x, y), "");
         } else {
             int x;
             int y;
-            if(base.getX() == 0) {
+            if (base.getX() == 0) {
                 x = (int) ((target.getPosition().getX() / distanceToBase) * (distanceToBase + 100));
                 y = (int) ((target.getPosition().getY() / distanceToBase) * (distanceToBase + 100));
-            } else{
+            } else {
                 x = (int) ((target.getPosition().getX() / distanceToBase) * (distanceToBase - 100));
                 y = (int) ((target.getPosition().getY() / distanceToBase) * (distanceToBase - 100));
             }
-            return HeroCommands.move(new Coordinate(x,  y), "");
+            return HeroCommands.move(new Coordinate(x, y), "");
         }
     }
 

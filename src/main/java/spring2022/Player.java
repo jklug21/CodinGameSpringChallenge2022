@@ -7,7 +7,6 @@ import java.util.Scanner;
 import java.util.stream.Stream;
 import spring2022.behavior.HeroBehavior;
 import spring2022.behavior.HeroBehaviorContainer;
-import spring2022.domain.Entity;
 import spring2022.domain.Hero;
 import spring2022.domain.InteractionAttributes;
 import spring2022.io.DerivedScanner;
@@ -17,7 +16,7 @@ import spring2022.io.RoundState;
 import spring2022.strategy.GameStrategy;
 import spring2022.strategy.MixedStrategy;
 import spring2022.util.AttributeMapper;
-import spring2022.util.HeroCommands;
+import spring2022.commands.HeroCommands;
 import spring2022.util.Log;
 
 class Player {
@@ -54,41 +53,45 @@ class Player {
             Hero[] heroes = state.getMyHeroes().values().toArray(new Hero[0]);
             for (int i = 0; i < state.getHeroesPerPlayer(); i++) {
                 Hero hero = heroes[i];
-                HeroBehavior heroBehavior = heroBehaviors.get(hero.getId() % 3).getBehavior();
-                int currentTargetId;
-                if(hero.getCurrentTarget() == null) {
-                    currentTargetId = -1;
+                if (state.getHeroesAffectedByMagic().contains(hero.getId() % 3) && !hero.isShielded()) {
+                    hero.setNextAction(HeroCommands.shield(hero.getId()));
                 } else {
-                    if (state.getMonsters().stream().noneMatch(m -> m.getId() == hero.getCurrentTarget().getEntity().getId())) {
-                        hero.clearTarget();
+                    HeroBehavior heroBehavior = heroBehaviors.get(hero.getId() % 3).getBehavior();
+                    int currentTargetId;
+                    if (hero.getCurrentTarget() == null) {
                         currentTargetId = -1;
                     } else {
-                        currentTargetId = hero.getCurrentTarget().getEntity().getId();
+                        if (state.getMonsters().keySet().stream().noneMatch(monsterId -> monsterId == hero.getCurrentTarget().getEntity().getId())) {
+                            hero.clearTarget();
+                            currentTargetId = -1;
+                        } else {
+                            currentTargetId = hero.getCurrentTarget().getEntity().getId();
+                        }
                     }
-                }
 
-                AttributeMapper mapper = new AttributeMapper(state, hero);
+                    AttributeMapper mapper = new AttributeMapper(state, hero);
 
-                Optional<InteractionAttributes> selectedMonster = Stream.concat(state.getMonsters().stream(),
-                        state.getOppHeroes().stream())
-                        .map(mapper::calculateAttributes)
-                        .filter(a -> !a.isTargetedByOtherHero() || a.getEntity().getId() == currentTargetId)
-                        .filter(heroBehavior::considerEnemy)
-                        .min(heroBehavior::sortEnemies);
+                    Optional<InteractionAttributes> selectedMonster = Stream.concat(state.getMonsters().values().stream(),
+                            state.getOppHeroes().values().stream())
+                            .map(mapper::calculateAttributes)
+                            .filter(a -> !a.isTargetedByOtherHero() || a.getEntity().getId() == currentTargetId)
+                            .filter(heroBehavior::considerEnemy)
+                            .min(heroBehavior::sortEnemies);
 
-                InteractionAttributes target = selectedMonster.orElseGet(() -> state.getMonsters().stream()
-                        .map(mapper::calculateAttributes)
-                        .filter(heroBehavior::considerEnemy)
-                        .min(heroBehavior::sortEnemies).orElse(null));
+                    InteractionAttributes target = selectedMonster.orElseGet(() -> state.getMonsters().values().stream()
+                            .map(mapper::calculateAttributes)
+                            .filter(heroBehavior::considerEnemy)
+                            .min(heroBehavior::sortEnemies).orElse(null));
 
-                hero.setCurrentTarget(target);
-                if (target != null) {
-                    Log.log("main", hero.getId() + " [" + heroBehavior.getClass().getSimpleName() + "]: " + target.debugShort(hero));
-                    hero.setNextAction(heroBehavior.getNextAction(target));
-                }
+                    hero.setCurrentTarget(target);
+                    if (target != null) {
+                        Log.log("main", hero.getId() + " [" + heroBehavior.getClass().getSimpleName() + "]: " + target.debugShort(hero));
+                        hero.setNextAction(heroBehavior.getNextAction(target));
+                    }
 
-                if (!hero.hasNextAction()) {
-                    hero.setNextAction(HeroCommands.move(heroBehavior.getIdleCoordinate(state.getOwnBase(), state.getEnemyBase(), i), "boring"));
+                    if (!hero.hasNextAction()) {
+                        hero.setNextAction(HeroCommands.move(heroBehavior.getIdleCoordinate(state.getOwnBase(), state.getEnemyBase(), i), "boring"));
+                    }
                 }
             }
 

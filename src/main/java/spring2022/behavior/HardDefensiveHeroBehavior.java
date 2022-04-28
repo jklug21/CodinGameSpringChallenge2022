@@ -1,7 +1,7 @@
 package spring2022.behavior;
 
-import spring2022.GameParameters;
 import spring2022.GameState;
+import spring2022.commands.HeroCommand;
 import spring2022.domain.Entity;
 import spring2022.domain.Faction;
 import spring2022.domain.Hero;
@@ -9,9 +9,7 @@ import spring2022.domain.InteractionAttributes;
 import spring2022.io.RoundState;
 import spring2022.util.Constants;
 import spring2022.util.Coordinate;
-import spring2022.util.Helpers;
-import spring2022.util.HeroCommands;
-import spring2022.util.Log;
+import spring2022.commands.HeroCommands;
 
 public class HardDefensiveHeroBehavior implements HeroBehavior {
 
@@ -38,7 +36,7 @@ public class HardDefensiveHeroBehavior implements HeroBehavior {
     }
 
     @Override
-    public Runnable getNextAction(InteractionAttributes interaction) {
+    public HeroCommand getNextAction(InteractionAttributes interaction) {
         GameState state = GameState.get();
         Coordinate ownBase = state.getOwnBase();
         if (interaction == null) {

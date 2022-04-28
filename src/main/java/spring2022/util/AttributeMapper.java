@@ -29,11 +29,11 @@ public class AttributeMapper {
         Coordinate rendezvous2 = entity.predictPosition(reachedInRounds + 1);
         int buddyCount;
         if (entity.getFaction() == Faction.MONSTER) {
-            buddyCount = (int) state.getMonsters().stream()
+            buddyCount = (int) state.getMonsters().values().stream()
                     .filter(m -> m.distanceTo(entity) < Constants.MELEE_RANGE * 2)
                     .count();
         } else {
-            buddyCount = (int) state.getOppHeroes().stream()
+            buddyCount = (int) state.getOppHeroes().values().stream()
                     .filter(m -> m.distanceTo(entity) < Constants.MELEE_RANGE * 2)
                     .count();
         }

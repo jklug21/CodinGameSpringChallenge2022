@@ -2,14 +2,17 @@ package spring2022.domain;
 
 import lombok.Getter;
 import lombok.Setter;
+import spring2022.commands.HeroCommand;
 import spring2022.io.EntityData;
+import spring2022.util.Coordinate;
 
 @Getter
 @Setter
 public class Hero extends Entity {
     public static Hero NVL = new Hero(Entity.NVL);
     private InteractionAttributes currentTarget;
-    private Runnable nextAction;
+    private HeroCommand nextAction;
+    private Coordinate targetCoordinate;
 
     public Hero(EntityData entityData) {
         super(entityData);
@@ -37,7 +40,7 @@ public class Hero extends Entity {
         setCurrentTarget(InteractionAttributes.NVL);
     }
 
-    public void setNextAction(Runnable action) {
+    public void setNextAction(HeroCommand action) {
         this.nextAction = action;
     }
 
@@ -46,6 +49,7 @@ public class Hero extends Entity {
     }
 
     public void executeAction() {
-        nextAction.run();
+        targetCoordinate = nextAction.expectedPositionAfterExecution(this);
+        nextAction.execute();
     }
 }

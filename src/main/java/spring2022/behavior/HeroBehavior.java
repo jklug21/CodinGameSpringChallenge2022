@@ -1,6 +1,7 @@
 package spring2022.behavior;
 
 import spring2022.GameState;
+import spring2022.commands.HeroCommand;
 import spring2022.domain.InteractionAttributes;
 import spring2022.util.Coordinate;
 
@@ -11,5 +12,5 @@ public interface HeroBehavior {
 
     Coordinate getIdleCoordinate(Coordinate ownBase, Coordinate enemyBase, int i);
 
-    Runnable getNextAction(InteractionAttributes interactionAttributes);
+    HeroCommand getNextAction(InteractionAttributes interactionAttributes);
 }

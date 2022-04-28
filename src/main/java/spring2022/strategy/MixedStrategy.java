@@ -1,5 +1,6 @@
 package spring2022.strategy;
 
+import spring2022.GameState;
 import spring2022.behavior.HeroBehaviorContainer;
 import spring2022.behavior.HeroClass;
 
@@ -18,6 +19,7 @@ public class MixedStrategy implements GameStrategy {
 
     @Override
     public void adaptBehavior(List<HeroBehaviorContainer> heroBehaviors) {
+        GameState state = GameState.get();
         if (Flags.getInstance().isFlagRaised(Flags.BASE_UNDER_ATTACK)) {
             heroBehaviors.get(2).setTempClass(HeroClass.INTERCEPTOR);
             heroBehaviors.get(2).setEndCondition(() -> !Flags.getInstance().isFlagRaised(Flags.BASE_UNDER_ATTACK));
@@ -28,9 +30,9 @@ public class MixedStrategy implements GameStrategy {
             heroBehaviors.get(1).setTempClass(HeroClass.DEFENDER);
             heroBehaviors.get(1).setEndCondition(() -> !Flags.getInstance().isFlagRaised(Flags.HARD_DEFENSE_NEEDED));
         }
-        if (Flags.getInstance().isFlagRaised(Flags.SECOND_PHASE)) {
+        if (Flags.getInstance().isFlagRaised(Flags.SECOND_PHASE) && state.getRoundState().getMyMana() >= 100) {
             heroBehaviors.get(1).setTempClass(HeroClass.DESTROYER);
-            heroBehaviors.get(1).setEndCondition(() -> false);
+            heroBehaviors.get(1).setEndCondition(() -> state.getRoundState().getMyMana() <= 50);
         }
     }
 }

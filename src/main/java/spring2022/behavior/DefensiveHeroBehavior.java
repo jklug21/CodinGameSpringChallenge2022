@@ -2,6 +2,7 @@ package spring2022.behavior;
 
 import spring2022.GameParameters;
 import spring2022.GameState;
+import spring2022.commands.HeroCommand;
 import spring2022.domain.Entity;
 import spring2022.domain.Faction;
 import spring2022.domain.Hero;
@@ -11,7 +12,7 @@ import spring2022.strategy.Flags;
 import spring2022.util.Constants;
 import spring2022.util.Coordinate;
 import spring2022.util.Helpers;
-import spring2022.util.HeroCommands;
+import spring2022.commands.HeroCommands;
 import spring2022.util.Log;
 
 public class DefensiveHeroBehavior implements HeroBehavior {
@@ -19,6 +20,7 @@ public class DefensiveHeroBehavior implements HeroBehavior {
 
     @Override
     public int sortEnemies(InteractionAttributes m1, InteractionAttributes m2) {
+        int result;
         InteractionAttributes currentTarget = m1.getHero().getCurrentTarget();
         int currentTargetId = -1;
         if (currentTarget != null) {
@@ -30,34 +32,36 @@ public class DefensiveHeroBehavior implements HeroBehavior {
         // only one close enough
         if (baseDist1 > GameParameters.FIGHTING_AREA && baseDist2 > GameParameters.FIGHTING_AREA) {
             // irrelevant
-            return 0;
+            result = 0;
         } else if (baseDist1 < GameParameters.FIGHTING_AREA && baseDist2 > GameParameters.FIGHTING_AREA) {
-            return -1;
+            result = -1;
         } else if (baseDist2 < GameParameters.FIGHTING_AREA && baseDist1 > GameParameters.FIGHTING_AREA) {
-            return 1;
+            result = 1;
         }
 
         // only one close enough
-        if (baseDist1 < GameParameters.SAFETY_AREA && baseDist2 > GameParameters.SAFETY_AREA) {
-            return -1;
+        else if (baseDist1 < GameParameters.SAFETY_AREA && baseDist2 > GameParameters.SAFETY_AREA) {
+            result = -2;
         } else if (baseDist2 < GameParameters.SAFETY_AREA && baseDist1 > GameParameters.SAFETY_AREA) {
-            return 1;
-        }
-
-        // if only one in critical area, kill the one within the critical area
-        if (baseDist1 < GameParameters.CRITICAL_AREA && baseDist2 > GameParameters.CRITICAL_AREA) {
-            return -1;
-        } else if (baseDist2 < GameParameters.CRITICAL_AREA && baseDist1 > GameParameters.CRITICAL_AREA) {
-            return 1;
+            result = 2;
         }  // else kill the current target
         else if (currentTargetId == m1.getEntity().getId()) {
-            return -1;
+            result = -3;
         } else if (currentTargetId == m2.getEntity().getId()) {
-            return 1;
+            result = 3;
+        } else if (baseDist1 < GameParameters.CRITICAL_AREA && baseDist2 > GameParameters.CRITICAL_AREA) {
+            // if only one in critical area, kill the one within the critical area
+            result = -4;
+        } else if (baseDist2 < GameParameters.CRITICAL_AREA && baseDist1 > GameParameters.CRITICAL_AREA) {
+            result = 4;
+        } else {
+            // both outside or inside critical area, kill the one closer to the hero
+            result = (int) (m2.getDistanceToBase() - m1.getDistanceToBase());
         }
-
-        // both outside or inside critical area, kill the one closer to the hero
-        return (int) (m2.getDistanceToHero() - m1.getDistanceToHero());
+        if (m1.getEntity().getId() == 58 || m2.getEntity().getId() == 58) {
+            Log.log(this, m1.getEntity().getId() + ":" + m2.getEntity().getId() + "=" + result);
+        }
+        return result;
     }
 
     @Override
@@ -67,7 +71,7 @@ public class DefensiveHeroBehavior implements HeroBehavior {
         Hero hero = m.getHero();
         int roundsToStrike = (int) ((m.getDistanceToBase() - 300) / 400);
         int timeToCollision = Helpers.timeToCollision(hero, m.getEntity());
-        if(!(timeToCollision < roundsToStrike || timeToCollision <= 1)) {
+        if (!(timeToCollision < roundsToStrike || timeToCollision <= 1)) {
             Log.log(this, "Ignoring " + m.getEntity().getId() + " " + timeToCollision + " " + roundsToStrike);
         }
         return (faction == Faction.MONSTER &&
@@ -84,7 +88,7 @@ public class DefensiveHeroBehavior implements HeroBehavior {
     }
 
     @Override
-    public Runnable getNextAction(InteractionAttributes interaction) {
+    public HeroCommand getNextAction(InteractionAttributes interaction) {
         GameState state = GameState.get();
         if (interaction == null) {
             return null;
