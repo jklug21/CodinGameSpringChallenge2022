@@ -6,5 +6,5 @@ import spring2022.behavior.HeroBehaviorContainer;
 public interface GameStrategy {
     List<HeroBehaviorContainer> getInitialBehavior();
 
-    void adaptBehavior(List<HeroBehaviorContainer> heroBehaviors);
+    void adaptBehavior();
 }

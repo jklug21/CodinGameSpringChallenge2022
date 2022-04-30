@@ -1,11 +1,16 @@
 package spring2022;
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import spring2022.behavior.HeroBehavior;
 import spring2022.behavior.HeroBehaviorContainer;
+import spring2022.commands.HeroCommand;
 import spring2022.commands.HeroCommands;
 import spring2022.domain.Hero;
 import spring2022.domain.InteractionAttributes;
@@ -16,28 +21,32 @@ import spring2022.io.RoundState;
 import spring2022.strategy.GameStrategy;
 import spring2022.strategy.MixedStrategy;
 import spring2022.util.AttributeMapper;
+import spring2022.util.Helpers;
 import spring2022.util.Log;
 
 class Player {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws FileNotFoundException {
         new Player().start();
     }
 
-    private void start() {
-        Scanner in = new Scanner(System.in);
+    private void start() throws FileNotFoundException {
+        Scanner in;
+        if (GameParameters.RE_RUN_INPUTS) {
+            in = new Scanner(new FileReader("src/main/resources/in.txt"));
+        } else {
+            in = new Scanner(System.in);
+        }
         DerivedScanner scanner = new DerivedScanner(in);
         GameStrategy strategy = new MixedStrategy();
         InitialData initialData = scanner.getObjectFromInput(InitialData.class);
         BattlefieldAnalyzer analyzer = new BattlefieldAnalyzer();
         GameState state = GameState.init(initialData, strategy.getInitialBehavior(), analyzer);
 
-        //noinspection InfiniteLoopStatement
-        while (true) {
+        while (in.hasNext()) {
             // re-evaluate strategy
 
             // adapt behavior
-            List<HeroBehaviorContainer> heroBehaviors = state.getHeroBehaviors();
-            strategy.adaptBehavior(heroBehaviors);
+            strategy.adaptBehavior();
 
             RoundState roundState = scanner.getObjectFromInput(RoundState.class);
             List<EntityData> entities = new ArrayList<>(roundState.getEntityCount());
@@ -54,10 +63,11 @@ class Player {
                 if (state.getHeroesAffectedByMagic().contains(hero.getId() % 3) && !hero.isShielded()) {
                     hero.setNextAction(HeroCommands.shield(hero.getId()));
                 } else {
-                    HeroBehavior heroBehavior = heroBehaviors.get(hero.getId() % 3).getBehavior();
+                    HeroBehavior heroBehavior = hero.getBehavior();
                     hero.clearTargetIfGone();
 
                     AttributeMapper mapper = new AttributeMapper(state, hero);
+                    //stop at 119
                     InteractionAttributes target = Stream.concat(state.getMonsters().values().stream(), state.getOppHeroes().values().stream())
                             .map(mapper::calculateAttributes)
                             .filter(heroBehavior::considerEnemy)
@@ -75,8 +85,32 @@ class Player {
                 }
             }
 
+            List<InteractionAttributes> targets = Arrays.stream(heroes).map(Hero::getCurrentTarget).collect(Collectors.toList());
+
+            int[][] permutations = Helpers.getPermutations(new int[]{0, 1, 2});
+            int bestPermutation = -1;
+            int bestPermutationValue = Integer.MAX_VALUE;
+            for (int i = 0; i < permutations.length; i++) {
+                int[] permutation = permutations[i];
+                int distance = 0;
+                for (int j = 0; j < 3; j++) {
+                    distance += heroes[j].distanceTo(targets.get(permutation[j]).getEntity());
+                }
+                if (distance < bestPermutationValue) {
+                    bestPermutationValue = distance;
+                    bestPermutation = i;
+                }
+            }
+
+            for (int i = 0; i < 3; i++) {
+                int newIndex = permutations[bestPermutation][i];
+                heroes[i].setCurrentTarget(heroes[newIndex].getCurrentTarget());
+                heroes[i].setNextAction(heroes[newIndex].getNextAction());
+            }
+
             for (int i = 0; i < state.getHeroesPerPlayer(); i++) {
-                heroes[i].executeAction();
+                Hero hero = heroes[i];
+                hero.executeAction();
             }
         }
     }

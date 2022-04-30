@@ -14,7 +14,7 @@ import spring2022.util.Decision;
 import spring2022.util.DecisionChain;
 
 public class ManaHunterHeroBehavior implements HeroBehavior {
-    public static final int[] POS_PRESET = {8000, 1200};
+    public static final int[] POS_PRESET = {5000, 8400, 8000, 500, 7800, 8300};
 
     @Override
     public int sortEnemies(InteractionAttributes ia1, InteractionAttributes ia2) {
@@ -28,14 +28,15 @@ public class ManaHunterHeroBehavior implements HeroBehavior {
     public boolean considerEnemy(InteractionAttributes m) {
         return ConsiderIf.isMonster(m) &&
                 ConsiderIf.heroCanReachBeforeExitingMap(m, Constants.MELEE_RANGE) &&
+                !ConsiderIf.targetedByOtherHero(m) &&
                 !ConsiderIf.targetsEnemyBase(m);
     }
 
     @Override
     public Coordinate getIdleCoordinate(int i) {
         Coordinate ownBase = GameState.get().getOwnBase();
-        int x = Math.abs(ownBase.getX() - POS_PRESET[i % 2]);
-        int y = Math.abs(ownBase.getY() - POS_PRESET[1 - i % 2]);
+        int x = Math.abs(ownBase.getX() - POS_PRESET[i * 2]);
+        int y = Math.abs(ownBase.getY() - POS_PRESET[i * 2 + 1]);
         return new Coordinate(x, y);
     }
 

@@ -19,7 +19,8 @@ public class MixedStrategy implements GameStrategy {
     }
 
     @Override
-    public void adaptBehavior(List<HeroBehaviorContainer> heroBehaviors) {
+    public void adaptBehavior() {
+        List<HeroBehaviorContainer> heroBehaviors = GameState.get().getHeroBehaviors();
         Flags flags = Flags.getInstance();
         GameState state = GameState.get();
         if (flags.isFlagRaised(Flags.BASE_UNDER_ATTACK)) {

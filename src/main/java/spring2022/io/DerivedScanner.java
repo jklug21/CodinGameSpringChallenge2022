@@ -6,6 +6,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
+import spring2022.util.Log;
 
 public class DerivedScanner {
     private final Scanner scanner;
@@ -30,6 +31,7 @@ public class DerivedScanner {
             T instance = defaultConstructor.newInstance();
             for (int i = 0; i <= maxIndex; i++) {
                 int v = scanner.nextInt();
+                Log.captureInput(v);
                 Field field = indexToFieldMap.get(i);
                 if (field != null) {
                     field.setAccessible(true);

@@ -1,5 +1,6 @@
 package spring2022.util;
 
+import spring2022.GameState;
 import spring2022.domain.Entity;
 import spring2022.domain.Faction;
 import spring2022.domain.Hero;
@@ -47,5 +48,13 @@ public class ConsiderIf {
 
     public static boolean heroCanControlOrShield(InteractionAttributes m) {
         return m.getDistanceToHero() <= Constants.CONTROL_RANGE;
+    }
+
+    public static boolean targetedByOtherHero(InteractionAttributes m) {
+        GameState state = GameState.get();
+        int heroId = m.getHero().getId();
+        return state.getMyHeroes().values().stream()
+                .filter(h -> h.getId() != heroId)
+                .anyMatch(h -> h.getCurrentTarget().getEntity().getId() == m.getEntity().getId());
     }
 }

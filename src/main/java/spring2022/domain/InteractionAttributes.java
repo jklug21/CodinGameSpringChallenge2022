@@ -8,7 +8,7 @@ import spring2022.util.Helpers;
 @Getter
 @AllArgsConstructor
 public class InteractionAttributes {
-    public static final InteractionAttributes NVL = new InteractionAttributes(Entity.NVL, Hero.NVL, /*null,*/ 0, 0, 0, 0, false, 0);
+    public static final InteractionAttributes NVL = new InteractionAttributes(Entity.NVL, Hero.NVL, /*null,*/ 0, 0, 0, Integer.MAX_VALUE, false, 0);
     private final Entity entity;
     private final Hero hero;
     private final double distanceToBase;

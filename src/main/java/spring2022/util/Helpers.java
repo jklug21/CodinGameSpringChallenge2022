@@ -1,5 +1,6 @@
 package spring2022.util;
 
+import java.util.Arrays;
 import java.util.function.Supplier;
 import spring2022.GameParameters;
 import spring2022.GameState;
@@ -127,5 +128,38 @@ public class Helpers {
         HeroBehaviorContainer behavior = state.getHeroBehaviors().get(heroId % 3);
         behavior.setTempClass(toClass);
         behavior.setEndCondition(until);
+    }
+
+    public static int[][] getPermutations(int[] elements) {
+        int n = elements.length;
+        int[][] permutations = new int[6][3];
+        int[] indexes = new int[n];
+        for (int i = 0; i < n; i++) {
+            indexes[i] = 0;
+        }
+
+        int perm = 0;
+        permutations[perm++] = Arrays.copyOf(elements, elements.length);
+
+        int i = 0;
+        while (i < n) {
+            if (indexes[i] < i) {
+                swap(elements, i % 2 == 0 ? 0 : indexes[i], i);
+                permutations[perm++] = Arrays.copyOf(elements, elements.length);
+                indexes[i]++;
+                i = 0;
+            } else {
+                indexes[i] = 0;
+                i++;
+            }
+        }
+
+        return permutations;
+    }
+
+    private static void swap(int[] input, int a, int b) {
+        int tmp = input[a];
+        input[a] = input[b];
+        input[b] = tmp;
     }
 }

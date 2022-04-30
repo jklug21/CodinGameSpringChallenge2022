@@ -1,6 +1,9 @@
 package spring2022;
 
 public class GameParameters {
+    public final static boolean CAPTURE_INPUTS = false;
+    public static final boolean RE_RUN_INPUTS = true;
+
     public static final int HERO_SPEED = 800;
     public static final int HUNTING_AREA = 11000;
     public static final int FIGHTING_AREA = 7000;
