@@ -4,27 +4,32 @@ import java.util.Comparator;
 import java.util.Optional;
 import spring2022.GameState;
 import spring2022.commands.HeroCommand;
+import spring2022.commands.HeroCommands;
 import spring2022.domain.Entity;
 import spring2022.domain.Faction;
 import spring2022.domain.Hero;
 import spring2022.domain.InteractionAttributes;
+import spring2022.strategy.Flags;
+import spring2022.util.ConsiderIf;
 import spring2022.util.Constants;
 import spring2022.util.Coordinate;
-import spring2022.commands.HeroCommands;
+import spring2022.util.Decision;
+import spring2022.util.DecisionChain;
 
 public class InterceptorHeroBehavior implements HeroBehavior {
     @Override
     public int sortEnemies(InteractionAttributes m1, InteractionAttributes m2) {
-        return (int) (m1.getDistanceToBase() - m2.getDistanceToBase());
+        return DecisionChain.of(
+                Decision.closerToBase(m1, m2));
     }
 
     @Override
     public boolean considerEnemy(InteractionAttributes m) {
-        return m.getDistanceToHero() <= 2200;
+        return ConsiderIf.heroCanControlOrShield(m);
     }
 
     @Override
-    public Coordinate getIdleCoordinate(Coordinate ownBase, Coordinate enemyBase, int i) {
+    public Coordinate getIdleCoordinate(int i) {
         return new Coordinate(5000, 5000);
     }
 
@@ -36,6 +41,9 @@ public class InterceptorHeroBehavior implements HeroBehavior {
         Coordinate base = state.getOwnBase();
         Coordinate enemyBase = state.getEnemyBase();
         if (state.getRoundState().getMyMana() >= 50) {
+            if (Flags.getInstance().isFlagRaised(Flags.WIND_STRIKE_POSSIBLE) && target.distanceTo(hero) < Constants.CONTROL_RANGE) {
+                return HeroCommands.control(target.getId(), enemyBase, "There's the door");
+            }
             Optional<Entity> closestMonster = state.getMonsters().values().stream()
                     .filter(e -> e.getThreatFor() != Faction.MONSTER)
                     .min(getEntityComparator(hero, base));
@@ -43,11 +51,7 @@ public class InterceptorHeroBehavior implements HeroBehavior {
                 Entity entity = closestMonster.get();
                 if (entity.distanceTo(hero) < Constants.CONTROL_RANGE) {
                     if (entity.distanceTo(base) > 5400) {
-
-                        int dx = (int) (Math.random() * 5000d);
-                        int dy = (int) (Math.random() * 5000d);
-                        Coordinate enemyBaseDirection = new Coordinate(Math.abs(enemyBase.getX() - dx), Math.abs(enemyBase.getY() - dy));
-                        return HeroCommands.control(entity.getId(), enemyBaseDirection, "Good boy");
+                        return HeroCommands.monsterAttack(entity.getId(), "Good boy");
                     } else {
                         return HeroCommands.castWindTowards(enemyBase, "*slap*");
                     }

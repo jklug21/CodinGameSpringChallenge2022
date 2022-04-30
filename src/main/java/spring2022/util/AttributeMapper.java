@@ -24,9 +24,6 @@ public class AttributeMapper {
                 .filter(h -> h.getCurrentTarget() != null)
                 .anyMatch(h -> h.getCurrentTarget().getEntity().getId() == entity.getId());
         double monsterSpeed = entity.getVelocity().getHypotenuse();
-        int reachedInRounds = Helpers.timeToCollision(hero, entity);
-        Coordinate rendezvous = entity.predictPosition(reachedInRounds);
-        Coordinate rendezvous2 = entity.predictPosition(reachedInRounds + 1);
         int buddyCount;
         if (entity.getFaction() == Faction.MONSTER) {
             buddyCount = (int) state.getMonsters().values().stream()
@@ -37,6 +34,6 @@ public class AttributeMapper {
                     .filter(m -> m.distanceTo(entity) < Constants.MELEE_RANGE * 2)
                     .count();
         }
-        return new InteractionAttributes(entity, hero, distanceToBase, distanceToEnemyBase, monsterSpeed, distanceToHero, targetedByOtherHero, rendezvous, rendezvous2, buddyCount);
+        return new InteractionAttributes(entity, hero, distanceToBase, distanceToEnemyBase, monsterSpeed, distanceToHero, targetedByOtherHero, buddyCount);
     }
 }

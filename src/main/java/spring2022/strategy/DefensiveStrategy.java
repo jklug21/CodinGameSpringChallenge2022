@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import spring2022.behavior.HeroBehaviorContainer;
 import spring2022.behavior.HeroClass;
+import spring2022.util.EndCondition;
+import spring2022.util.Helpers;
 
 public class DefensiveStrategy implements GameStrategy {
     @Override
@@ -18,8 +20,7 @@ public class DefensiveStrategy implements GameStrategy {
     @Override
     public void adaptBehavior(List<HeroBehaviorContainer> heroBehaviors) {
         if (Flags.getInstance().isFlagRaised(Flags.BASE_UNDER_ATTACK)) {
-            heroBehaviors.get(2).setTempClass(HeroClass.INTERCEPTOR);
-            heroBehaviors.get(2).setEndCondition(() -> !Flags.getInstance().isFlagRaised(Flags.BASE_UNDER_ATTACK));
+            Helpers.changeClass(2, HeroClass.INTERCEPTOR, EndCondition.notFlag(Flags.BASE_UNDER_ATTACK));
         }
     }
 }

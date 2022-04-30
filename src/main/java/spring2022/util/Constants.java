@@ -8,4 +8,5 @@ public class Constants {
     public static final int MELEE_RANGE = 800;
     public static final int MELEE_RANGE_SQ = MELEE_RANGE * MELEE_RANGE;
     public static final int ENEMY_RANGE = 300;
+    public static final int VIEWING_DISTANCE = 2200;
 }

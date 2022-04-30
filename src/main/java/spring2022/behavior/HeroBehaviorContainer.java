@@ -10,6 +10,7 @@ public class HeroBehaviorContainer {
     private final int id;
     private HeroBehavior tempBehavior;
     private Supplier<Boolean> endCondition;
+    private HeroClass tempClass;
 
 
     public HeroBehaviorContainer(HeroClass mainClass, int id) {
@@ -33,7 +34,10 @@ public class HeroBehaviorContainer {
     }
 
     public void setTempClass(HeroClass heroClass) {
-        Log.log(this, id + ": Switching to " + heroClass);
-        tempBehavior = HeroBehaviorFactory.get(heroClass);
+        if (heroClass != tempClass) {
+            tempClass = heroClass;
+            Log.log(this, id + ": Switching to " + heroClass);
+            tempBehavior = HeroBehaviorFactory.get(heroClass);
+        }
     }
 }

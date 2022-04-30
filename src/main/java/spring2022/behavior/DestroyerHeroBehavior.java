@@ -3,24 +3,26 @@ package spring2022.behavior;
 import spring2022.GameParameters;
 import spring2022.GameState;
 import spring2022.commands.HeroCommand;
+import spring2022.commands.HeroCommands;
+import spring2022.domain.Entity;
 import spring2022.domain.Faction;
+import spring2022.domain.Hero;
 import spring2022.domain.InteractionAttributes;
 import spring2022.util.Constants;
 import spring2022.util.Coordinate;
-import spring2022.commands.HeroCommands;
+import spring2022.util.Decision;
+import spring2022.util.DecisionChain;
+import spring2022.util.Log;
 
 public class DestroyerHeroBehavior implements HeroBehavior {
+    private int controlledLastRound = -1;
+
     @Override
     public int sortEnemies(InteractionAttributes m1, InteractionAttributes m2) {
-        boolean shieldingRange1 = m1.getDistanceToEnemyBase() <= 12 * 400;
-        boolean shieldingRange2 = m2.getDistanceToEnemyBase() <= 12 * 400;
-        if (shieldingRange1 && !shieldingRange2) {
-            return -1;
-        }
-        if (shieldingRange2 && !shieldingRange1) {
-            return 1;
-        }
-        return (int) (m2.getDistanceToBase() - m1.getDistanceToBase());
+        return DecisionChain.of(
+                Decision.inAttackShieldingRange(m1, m2),
+                Decision.closerToBase(m1, m2)
+        );
     }
 
     @Override
@@ -28,8 +30,15 @@ public class DestroyerHeroBehavior implements HeroBehavior {
         if (m.getEntity().getFaction() != Faction.MONSTER) {
             return false;
         }
+        if (m.getEntity().getId() == controlledLastRound) {
+            return false;
+        }
+        Hero hero = m.getHero();
+        if (hero.getId() == 1 && m.getEntity().getId() == 43) {
+            Log.log(this, m.debug(hero));
+        }
         GameState state = GameState.get();
-        double heroFromEnemyBase = m.getHero().distanceTo(GameState.get().getEnemyBase());
+        double heroFromEnemyBase = hero.distanceTo(GameState.get().getEnemyBase());
         if (state.getRound() < 80) {
             int remainingRounds = 80 - state.getRound();
             if ((heroFromEnemyBase - 7000) / remainingRounds > GameParameters.HERO_SPEED) {
@@ -51,7 +60,8 @@ public class DestroyerHeroBehavior implements HeroBehavior {
     }
 
     @Override
-    public Coordinate getIdleCoordinate(Coordinate ownBase, Coordinate enemyBase, int i) {
+    public Coordinate getIdleCoordinate(int i) {
+        Coordinate enemyBase = GameState.get().getEnemyBase();
         return new Coordinate(Math.abs(enemyBase.getX() - 4000), Math.abs(enemyBase.getY() - 2600));
     }
 
@@ -60,19 +70,24 @@ public class DestroyerHeroBehavior implements HeroBehavior {
         GameState state = GameState.get();
         Coordinate enemyBase = state.getEnemyBase();
         Coordinate heroPos = m.getHero().getPosition();
-        int dx = (int) (Math.random() * (heroPos.getX() - enemyBase.getX()));
-        int dy = (int) (Math.random() * (heroPos.getY() - enemyBase.getY()));
-        Coordinate target = new Coordinate(enemyBase.getX() + dx, enemyBase.getY() + dy);
-        if (m.getEntity().getThreatFor() != Faction.ENEMY && m.getHero().distanceTo(enemyBase) > 7000) {
-            return HeroCommands.control(m.getEntity().getId(), target, "Chaaarge!");
-        } else if (m.getEntity().getThreatFor() == Faction.ENEMY && m.getDistanceToEnemyBase() <= 12 * 400) {
-            return HeroCommands.shield(m.getEntity().getId());
+        Entity entity = m.getEntity();
+        int targetId = entity.getId();
+        if (entity.getThreatFor() != Faction.ENEMY && m.getHero().distanceTo(enemyBase) > 7000) {
+            controlledLastRound = targetId;
+            return HeroCommands.monsterAttack(targetId, "Chaaarge!");
+        } else if (entity.getThreatFor() == Faction.ENEMY && m.getDistanceToEnemyBase() <= 12 * 400) {
+            return HeroCommands.shield(targetId);
         } else {
             long monstersCloseby = state.getMonsters().values().stream().filter(mo -> mo.distanceTo(heroPos) < Constants.WIND_RANGE).count();
             if (monstersCloseby > 4) {
                 return HeroCommands.castWindTowards(enemyBase, "Surprise motherf*");
             }
-            return HeroCommands.control(m.getEntity().getId(), target, "Chaaarge!");
+            if (controlledLastRound != targetId) {
+                controlledLastRound = targetId;
+                return HeroCommands.monsterAttack(targetId, "Chaaarge!");
+            } else {
+                return HeroCommands.move(enemyBase, "Attacking");
+            }
         }
     }
 }

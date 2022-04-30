@@ -33,6 +33,7 @@ public class EntityData {
     public Faction getFaction() {
         return Faction.parse(faction);
     }
+
     public Faction getThreatFor() {
         return Faction.parse(threatFor);
     }

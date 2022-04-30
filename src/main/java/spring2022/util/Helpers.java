@@ -1,6 +1,10 @@
 package spring2022.util;
 
+import java.util.function.Supplier;
 import spring2022.GameParameters;
+import spring2022.GameState;
+import spring2022.behavior.HeroBehaviorContainer;
+import spring2022.behavior.HeroClass;
 import spring2022.domain.Entity;
 import spring2022.domain.Faction;
 import spring2022.domain.Hero;
@@ -18,9 +22,17 @@ public class Helpers {
         return hero.distanceTo(target.predictPosition(rounds));
     }
 
-    public static int timeToCollision(Hero hero, Entity monster) {
+    public static double predictDistance(int rounds, Hero hero, Coordinate targetPosition, Coordinate targetVelocity) {
+        return hero.distanceTo(predictPosition(targetPosition, targetVelocity, rounds));
+    }
+
+    public static int timeToCollision(Hero hero, Entity target, int distance) {
+        return timeToCollision(hero, target.getPosition(), target.getVelocity(), distance);
+    }
+
+    public static int timeToCollision(Hero hero, Coordinate targetPosition, Coordinate targetVelocity, int distance) {
         for (int i = 0; i < 10; i++) {
-            if (predictDistance(i, hero, monster) < GameParameters.HERO_SPEED * i + 800) {
+            if (predictDistance(i, hero, targetPosition, targetVelocity) < GameParameters.HERO_SPEED * i + distance) {
                 return i;
             }
         }
@@ -95,4 +107,25 @@ public class Helpers {
         return threatFor;
     }
 
+    public static Coordinate predictPosition(Coordinate position, Coordinate velocity, int rounds) {
+        int x = position.getX() + velocity.getX() * rounds;
+        int y = position.getY() + velocity.getY() * rounds;
+        return new Coordinate(x, y);
+    }
+
+    public static boolean insideMapArea(Coordinate pos) {
+        return !(pos.getX() < 0 || pos.getY() < 0 || pos.getX() > 17630 || pos.getY() > 9000);
+    }
+
+    public static void changeClass(Hero hero, HeroClass toClass, Supplier<Boolean> until) {
+        int heroId = hero.getId();
+        changeClass(heroId, toClass, until);
+    }
+
+    public static void changeClass(int heroId, HeroClass toClass, Supplier<Boolean> until) {
+        GameState state = GameState.get();
+        HeroBehaviorContainer behavior = state.getHeroBehaviors().get(heroId % 3);
+        behavior.setTempClass(toClass);
+        behavior.setEndCondition(until);
+    }
 }

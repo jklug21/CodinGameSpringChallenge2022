@@ -1,5 +1,6 @@
 package spring2022.domain;
 
+import java.util.Objects;
 import lombok.Getter;
 import lombok.Setter;
 import spring2022.GameState;
@@ -10,12 +11,12 @@ import spring2022.util.Helpers;
 @Getter
 @Setter
 public class Entity {
-    public static final Entity NVL = new Entity(0, Faction.NVL, 0, 0, 0, 0, 0, 0, 0, 0, Faction.NVL);
+    public static final Entity NVL = new Entity(0, Faction.NVL, 0, 0, 0, 0, 0, 0, 0, 0);
     private final int id;
     private final Faction faction;
     private final int shieldLife;
     private final int isControlled;
-    private final int health;
+    private int health;
     private final Coordinate velocity;
     private final int nearBase;
     private final Faction threatFor;
@@ -34,7 +35,7 @@ public class Entity {
         this.threatFor = Helpers.calculateThreatFor(data.getX(), data.getY(), data.getVx(), data.getVy(), state.getEnemyBase(), state.getOwnBase());
     }
 
-    public Entity(int id, Faction faction, int x, int y, int shieldLife, int isControlled, int health, int vx, int vy, int nearBase, Faction threatFor) {
+    public Entity(int id, Faction faction, int x, int y, int shieldLife, int isControlled, int health, int vx, int vy, int nearBase) {
         GameState state = GameState.get();
         this.id = id;
         this.faction = faction;
@@ -69,10 +70,14 @@ public class Entity {
     public String toString() {
         return "{" +
                 "id=" + id +
-                ", type=" + faction +
-                ", health=" + health +
+                ", f=" + faction +
+                ", sL=" + shieldLife +
+                ", c=" + isControlled +
+                ", hp=" + health +
+                ", v=" + velocity +
                 ", nearBase=" + nearBase +
                 ", threatFor=" + threatFor +
+                ", p=" + position +
                 '}';
     }
 
@@ -81,5 +86,22 @@ public class Entity {
                 " (" + faction +
                 ") hp=" + health +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Entity entity = (Entity) o;
+        return id == entity.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    public void doDamage() {
+        health -= 2;
     }
 }

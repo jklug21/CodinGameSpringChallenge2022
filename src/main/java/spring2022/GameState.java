@@ -15,7 +15,7 @@ import spring2022.io.EntityData;
 import spring2022.io.InitialData;
 import spring2022.io.RoundState;
 import spring2022.util.Coordinate;
-import spring2022.util.Log;
+import spring2022.util.Helpers;
 
 @Getter
 public class GameState {
@@ -63,17 +63,20 @@ public class GameState {
 
         extrapolatePosition(monsters.values());
 
+        List<Entity> newMonsters = entities.stream().filter(e -> e.getFaction() == Faction.MONSTER)
+                .map(Entity::new).collect(Collectors.toList());
+
         monsters = monsters.entrySet().stream()
-                // remove monsters killed in the last round
-                .filter(e -> myHeroes.values()
-                        .stream().noneMatch(h -> e.getValue().getHealth() <= 2 && h.distanceTo(e.getValue()) <= 800))
+                // remove monsters that should be visible but are not
+                .filter(m -> newMonsters.contains(m.getValue()) ||
+                        !(myHeroes.values().stream().anyMatch(h -> h.canSee(m.getValue().getPosition())) ||
+                                ownBase.distanceTo(m.getValue().getPosition()) > 6000))
                 // remove monsters who left the map
                 .filter(this::insideMapArea)
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         // add/update actually seen monsters
-        monsters.putAll(entities.stream().filter(e -> e.getFaction() == Faction.MONSTER)
-                .map(Entity::new)
+        monsters.putAll(newMonsters.stream()
                 .collect(Collectors.toMap(Entity::getId, e -> e)));
 
         Map<Integer, Hero> oldHeroes = myHeroes;
@@ -82,19 +85,15 @@ public class GameState {
                 .map(this::stayOnTarget)
                 .collect(Collectors.toMap(Entity::getId, e -> e));
         heroesAffectedByMagic = oldHeroes.entrySet().stream()
-                .peek(e -> Log.log(this, e.getValue().predictPosition(1) + " " + myHeroes.get(e.getKey()).getPosition()))
                 .filter(e -> e.getValue().getTargetCoordinate()
                         .distanceTo(myHeroes.get(e.getKey()).getPosition()) > 10)
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
-        if (heroesAffectedByMagic.size() > 0) {
-            Log.log(this, "Affected: " + heroesAffectedByMagic.stream().map(String::valueOf).collect(Collectors.joining(", ")));
-        }
     }
 
     private boolean insideMapArea(Map.Entry<Integer, Entity> entity) {
         Coordinate pos = entity.getValue().getPosition();
-        return !(pos.getX() < 0 || pos.getY() < 0 || pos.getX() > 17630 || pos.getY() > 9000);
+        return Helpers.insideMapArea(pos);
     }
 
     private void extrapolatePosition(Collection<Entity> entities) {

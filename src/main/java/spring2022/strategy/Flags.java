@@ -11,6 +11,7 @@ public class Flags {
     public static final int WIND_STRIKE_POSSIBLE = 2;
     public static final int SECOND_PHASE = 4;
     public static final int HARD_DEFENSE_NEEDED = 8;
+    public static final int MONSTER_CLOSE_TO_BASE = 16;
 
     public int flags = 0;
 
@@ -20,6 +21,7 @@ public class Flags {
         names.put(2, "Wind strike possible");
         names.put(4, "Second phase");
         names.put(8, "Hard defense needed");
+        names.put(16, "Monster approaching base");
     }
 
     public static Flags getInstance() {

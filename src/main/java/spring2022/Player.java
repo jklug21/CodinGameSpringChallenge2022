@@ -2,11 +2,11 @@ package spring2022;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Scanner;
 import java.util.stream.Stream;
 import spring2022.behavior.HeroBehavior;
 import spring2022.behavior.HeroBehaviorContainer;
+import spring2022.commands.HeroCommands;
 import spring2022.domain.Hero;
 import spring2022.domain.InteractionAttributes;
 import spring2022.io.DerivedScanner;
@@ -16,7 +16,6 @@ import spring2022.io.RoundState;
 import spring2022.strategy.GameStrategy;
 import spring2022.strategy.MixedStrategy;
 import spring2022.util.AttributeMapper;
-import spring2022.commands.HeroCommands;
 import spring2022.util.Log;
 
 class Player {
@@ -32,7 +31,6 @@ class Player {
         BattlefieldAnalyzer analyzer = new BattlefieldAnalyzer();
         GameState state = GameState.init(initialData, strategy.getInitialBehavior(), analyzer);
 
-        // game loop
         //noinspection InfiniteLoopStatement
         while (true) {
             // re-evaluate strategy
@@ -57,40 +55,22 @@ class Player {
                     hero.setNextAction(HeroCommands.shield(hero.getId()));
                 } else {
                     HeroBehavior heroBehavior = heroBehaviors.get(hero.getId() % 3).getBehavior();
-                    int currentTargetId;
-                    if (hero.getCurrentTarget() == null) {
-                        currentTargetId = -1;
-                    } else {
-                        if (state.getMonsters().keySet().stream().noneMatch(monsterId -> monsterId == hero.getCurrentTarget().getEntity().getId())) {
-                            hero.clearTarget();
-                            currentTargetId = -1;
-                        } else {
-                            currentTargetId = hero.getCurrentTarget().getEntity().getId();
-                        }
-                    }
+                    hero.clearTargetIfGone();
 
                     AttributeMapper mapper = new AttributeMapper(state, hero);
-
-                    Optional<InteractionAttributes> selectedMonster = Stream.concat(state.getMonsters().values().stream(),
-                            state.getOppHeroes().values().stream())
-                            .map(mapper::calculateAttributes)
-                            .filter(a -> !a.isTargetedByOtherHero() || a.getEntity().getId() == currentTargetId)
-                            .filter(heroBehavior::considerEnemy)
-                            .min(heroBehavior::sortEnemies);
-
-                    InteractionAttributes target = selectedMonster.orElseGet(() -> state.getMonsters().values().stream()
+                    InteractionAttributes target = Stream.concat(state.getMonsters().values().stream(), state.getOppHeroes().values().stream())
                             .map(mapper::calculateAttributes)
                             .filter(heroBehavior::considerEnemy)
-                            .min(heroBehavior::sortEnemies).orElse(null));
+                            .min(heroBehavior::sortEnemies).orElse(null);
 
-                    hero.setCurrentTarget(target);
                     if (target != null) {
+                        hero.setCurrentTarget(target);
                         Log.log("main", hero.getId() + " [" + heroBehavior.getClass().getSimpleName() + "]: " + target.debugShort(hero));
                         hero.setNextAction(heroBehavior.getNextAction(target));
                     }
 
                     if (!hero.hasNextAction()) {
-                        hero.setNextAction(HeroCommands.move(heroBehavior.getIdleCoordinate(state.getOwnBase(), state.getEnemyBase(), i), "boring"));
+                        hero.setNextAction(HeroCommands.move(heroBehavior.getIdleCoordinate(i), "boring"));
                     }
                 }
             }

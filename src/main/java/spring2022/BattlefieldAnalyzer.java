@@ -15,6 +15,7 @@ public class BattlefieldAnalyzer {
     private Entity interceptHero;
 
     public void analyzeBattlefield(GameState state) {
+        Flags flags = Flags.getInstance();
         criticalMonsters = new ArrayList<>();
         Collection<Entity> monsters = state.getMonsters().values();
         Coordinate ownBase = state.getOwnBase();
@@ -23,27 +24,32 @@ public class BattlefieldAnalyzer {
                 .collect(Collectors.toList());
         criticalMonsters = closestMonsters.stream().filter(m -> m.distanceTo(ownBase) <= 2600)
                 .collect(Collectors.toList());
-        if (criticalMonsters.size() > 4) {
-            Flags.getInstance().raiseFlag(Flags.HARD_DEFENSE_NEEDED);
+        if (closestMonsters.stream().anyMatch(m -> m.distanceTo(ownBase) < 6000)) {
+            flags.raiseFlag(Flags.MONSTER_CLOSE_TO_BASE);
         } else {
-            Flags.getInstance().lowerFlag(Flags.HARD_DEFENSE_NEEDED);
+            flags.lowerFlag(Flags.MONSTER_CLOSE_TO_BASE);
+        }
+        if (criticalMonsters.size() > 4) {
+            flags.raiseFlag(Flags.HARD_DEFENSE_NEEDED);
+        } else {
+            flags.lowerFlag(Flags.HARD_DEFENSE_NEEDED);
         }
         List<Entity> attackingHeroes = state.getOppHeroes().values().stream().filter(e -> e.distanceTo(ownBase) < 8000).collect(Collectors.toList());
         if (attackingHeroes.size() > 0) {
             interceptHero = attackingHeroes.get(0);
-            Flags.getInstance().raiseFlag(Flags.BASE_UNDER_ATTACK);
+            flags.raiseFlag(Flags.BASE_UNDER_ATTACK);
             if (criticalMonsters.size() > 0) {
-                Flags.getInstance().raiseFlag(Flags.WIND_STRIKE_POSSIBLE);
+                flags.raiseFlag(Flags.WIND_STRIKE_POSSIBLE);
             } else {
-                Flags.getInstance().lowerFlag(Flags.WIND_STRIKE_POSSIBLE);
+                flags.lowerFlag(Flags.WIND_STRIKE_POSSIBLE);
             }
         } else {
-            if (interceptHero != null && state.getOppHeroes().values().stream().filter(e -> e.distanceTo(ownBase) > 10000).anyMatch(e -> e.getId() == interceptHero.getId())) {
-                Flags.getInstance().lowerFlag(Flags.BASE_UNDER_ATTACK);
+            if (interceptHero != null && state.getOppHeroes().values().stream().filter(e -> e.distanceTo(ownBase) > 9000).anyMatch(e -> e.getId() == interceptHero.getId())) {
+                flags.lowerFlag(Flags.BASE_UNDER_ATTACK);
             }
         }
         if (state.getRound() == 60) {
-            Flags.getInstance().raiseFlag(Flags.SECOND_PHASE);
+            flags.raiseFlag(Flags.SECOND_PHASE);
         }
     }
 }
