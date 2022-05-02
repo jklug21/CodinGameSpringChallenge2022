@@ -1,8 +1,8 @@
-package spring2022.behavior;
+package spring2022.behavior.impl;
 
-import java.util.Comparator;
-import java.util.Optional;
 import spring2022.GameState;
+import spring2022.behavior.HeroBehavior;
+import spring2022.behavior.HeroClass;
 import spring2022.commands.HeroCommand;
 import spring2022.commands.HeroCommands;
 import spring2022.domain.Entity;
@@ -15,6 +15,9 @@ import spring2022.util.Constants;
 import spring2022.util.Coordinate;
 import spring2022.util.Decision;
 import spring2022.util.DecisionChain;
+
+import java.util.Comparator;
+import java.util.Optional;
 
 public class InterceptorHeroBehavior implements HeroBehavior {
     @Override
@@ -41,8 +44,14 @@ public class InterceptorHeroBehavior implements HeroBehavior {
         Coordinate base = state.getOwnBase();
         Coordinate enemyBase = state.getEnemyBase();
         if (state.getRoundState().getMyMana() >= 50) {
-            if (Flags.getInstance().isFlagRaised(Flags.WIND_STRIKE_POSSIBLE) && target.distanceTo(hero) < Constants.CONTROL_RANGE) {
-                return HeroCommands.control(target.getId(), enemyBase, "There's the door");
+            if (!target.isShielded()) {
+                if (target.distanceTo(hero) < (Constants.WIND_RANGE - 600)) {
+                    return HeroCommands.castWindTowards(enemyBase, "*slap1*");
+                }
+                if (Flags.getInstance().isFlagRaised(Flags.WIND_STRIKE_POSSIBLE) &&
+                        target.distanceTo(hero) < Constants.CONTROL_RANGE) {
+                    return HeroCommands.control(target, enemyBase, "There's the door");
+                }
             }
             Optional<Entity> closestMonster = state.getMonsters().values().stream()
                     .filter(e -> e.getThreatFor() != Faction.MONSTER)
@@ -51,9 +60,9 @@ public class InterceptorHeroBehavior implements HeroBehavior {
                 Entity entity = closestMonster.get();
                 if (entity.distanceTo(hero) < Constants.CONTROL_RANGE) {
                     if (entity.distanceTo(base) > 5400) {
-                        return HeroCommands.monsterAttack(entity.getId(), "Good boy");
-                    } else {
-                        return HeroCommands.castWindTowards(enemyBase, "*slap*");
+                        return HeroCommands.monsterAttack(entity, "Good boy");
+                    } else if (entity.distanceTo(hero) < Constants.WIND_RANGE - 600) {
+                        return HeroCommands.castWindTowards(enemyBase, "*slap2*");
                     }
                 }
             }
@@ -76,6 +85,11 @@ public class InterceptorHeroBehavior implements HeroBehavior {
             }
             return HeroCommands.move(new Coordinate(x, y), "");
         }
+    }
+
+    @Override
+    public HeroClass getHeroClass() {
+        return HeroClass.INTERCEPTOR;
     }
 
     private Comparator<Entity> getEntityComparator(Hero hero, Coordinate base) {

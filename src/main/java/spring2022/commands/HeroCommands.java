@@ -1,6 +1,11 @@
 package spring2022.commands;
 
 import spring2022.GameState;
+import spring2022.commands.impl.AttackCommand;
+import spring2022.commands.impl.ControlCommand;
+import spring2022.commands.impl.MoveCommand;
+import spring2022.commands.impl.ShieldCommand;
+import spring2022.commands.impl.WindCommand;
 import spring2022.domain.Entity;
 import spring2022.domain.Hero;
 import spring2022.util.Constants;
@@ -15,10 +20,6 @@ public class HeroCommands {
     public static HeroCommand move(Coordinate target, String message) {
         return new MoveCommand(target, message);
     }
-
-//    public static HeroCommand attack(Hero hero, Coordinate target, int id) {
-//        return attack(hero, target, String.valueOf(id));
-//    }
 
     public static HeroCommand attack(Hero hero, Entity target) {
         GameState state = GameState.get();
@@ -48,13 +49,13 @@ public class HeroCommands {
         return new ShieldCommand(targetId, "");
     }
 
-    public static HeroCommand control(int targetId, Coordinate target, String message) {
+    public static HeroCommand control(Entity entity, Coordinate target, String message) {
         GameState state = GameState.get();
         state.getRoundState().reduceMana(Constants.SPELL_COST);
-        return new ControlCommand(targetId, target, message);
+        return new ControlCommand(entity, target, message);
     }
 
-    public static HeroCommand monsterAttack(int id, String message) {
+    public static HeroCommand monsterAttack(Entity entity, String message) {
         GameState state = GameState.get();
         Coordinate enemyBase = state.getEnemyBase();
         int tx = enemyBase.getX();
@@ -66,6 +67,6 @@ public class HeroCommands {
         }
 
         Coordinate target = new Coordinate(tx, ty);
-        return control(id, target, message);
+        return control(entity, target, message);
     }
 }

@@ -1,6 +1,10 @@
 package spring2022.behavior;
 
 import lombok.Getter;
+import spring2022.behavior.impl.DefensiveHeroBehavior;
+import spring2022.behavior.impl.HardDefensiveHeroBehavior;
+import spring2022.behavior.impl.InterceptorHeroBehavior;
+import spring2022.behavior.impl.ManaHunterHeroBehavior;
 
 @Getter
 public enum HeroClass {

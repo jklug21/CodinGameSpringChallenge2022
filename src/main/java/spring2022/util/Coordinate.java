@@ -24,4 +24,13 @@ public class Coordinate {
                 ", y=" + y +
                 '}';
     }
+
+    public Coordinate getVector(Coordinate target) {
+        return new Coordinate(target.getX() - x, target.getY() - y);
+    }
+
+    public Coordinate scaleVectorTo(int length) {
+        double hypotenuse = getHypotenuse();
+        return new Coordinate((int) (((double) x / hypotenuse) * (double) length), (int) (((double) y / hypotenuse) * (double) length));
+    }
 }

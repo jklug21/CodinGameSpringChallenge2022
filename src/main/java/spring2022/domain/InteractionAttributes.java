@@ -2,10 +2,12 @@ package spring2022.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.ToString;
 import spring2022.util.Constants;
 import spring2022.util.Helpers;
 
 @Getter
+@ToString
 @AllArgsConstructor
 public class InteractionAttributes {
     public static final InteractionAttributes NVL = new InteractionAttributes(Entity.NVL, Hero.NVL, /*null,*/ 0, 0, 0, Integer.MAX_VALUE, false, 0);

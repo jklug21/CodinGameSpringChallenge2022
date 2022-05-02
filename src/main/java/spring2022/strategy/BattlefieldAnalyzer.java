@@ -1,13 +1,17 @@
-package spring2022;
+package spring2022.strategy;
+
+import lombok.Getter;
+import spring2022.GameState;
+import spring2022.domain.Entity;
+import spring2022.domain.Faction;
+import spring2022.strategy.Flags;
+import spring2022.util.Coordinate;
+import spring2022.util.Log;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
-import lombok.Getter;
-import spring2022.domain.Entity;
-import spring2022.strategy.Flags;
-import spring2022.util.Coordinate;
 
 @Getter
 public class BattlefieldAnalyzer {
@@ -19,6 +23,12 @@ public class BattlefieldAnalyzer {
         criticalMonsters = new ArrayList<>();
         Collection<Entity> monsters = state.getMonsters().values();
         Coordinate ownBase = state.getOwnBase();
+        long count = monsters.stream().filter(m -> m.getThreatFor() == Faction.ENEMY).count();
+        if(count > 6) {
+            flags.raiseFlag(Flags.ATTACK_OPPORTUNITY);
+        } else {
+            flags.lowerFlag(Flags.ATTACK_OPPORTUNITY);
+        }
         List<Entity> closestMonsters = monsters.stream()
                 .sorted((m1, m2) -> (int) (m1.distanceTo(ownBase) - m2.distanceTo(ownBase)))
                 .collect(Collectors.toList());
@@ -51,5 +61,6 @@ public class BattlefieldAnalyzer {
         if (state.getRound() == 60) {
             flags.raiseFlag(Flags.SECOND_PHASE);
         }
+        Flags.print();
     }
 }

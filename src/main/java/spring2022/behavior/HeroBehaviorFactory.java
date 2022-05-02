@@ -1,5 +1,11 @@
 package spring2022.behavior;
 
+import spring2022.behavior.impl.DefensiveHeroBehavior;
+import spring2022.behavior.impl.DestroyerHeroBehavior;
+import spring2022.behavior.impl.HardDefensiveHeroBehavior;
+import spring2022.behavior.impl.InterceptorHeroBehavior;
+import spring2022.behavior.impl.ManaHunterHeroBehavior;
+
 public class HeroBehaviorFactory {
     public static HeroBehavior get(HeroClass heroClass) {
         switch (heroClass) {

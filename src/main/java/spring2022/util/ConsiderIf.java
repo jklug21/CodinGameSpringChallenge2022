@@ -7,22 +7,6 @@ import spring2022.domain.Hero;
 import spring2022.domain.InteractionAttributes;
 
 public class ConsiderIf {
-    public static boolean isMonster(Entity entity) {
-        return entity.getFaction() == Faction.MONSTER;
-    }
-
-    public static boolean isEnemy(Entity entity) {
-        return entity.getFaction() == Faction.ENEMY;
-    }
-
-    public static boolean targetsEnemyBase(Entity entity) {
-        return entity.getThreatFor() == Faction.ENEMY;
-    }
-
-    public static boolean targetsMe(Entity entity) {
-        return entity.getThreatFor() == Faction.OWN;
-    }
-
     public static boolean isMonster(InteractionAttributes entity) {
         return entity.getEntity().getFaction() == Faction.MONSTER;
     }
@@ -32,11 +16,11 @@ public class ConsiderIf {
     }
 
     public static boolean targetsEnemyBase(InteractionAttributes entity) {
-        return entity.getEntity().getFaction() == Faction.ENEMY;
+        return entity.getEntity().getThreatFor() == Faction.ENEMY;
     }
 
     public static boolean targetsMe(InteractionAttributes entity) {
-        return entity.getEntity().getFaction() == Faction.OWN;
+        return entity.getEntity().getThreatFor() == Faction.OWN;
     }
 
     public static boolean heroCanReachBeforeExitingMap(InteractionAttributes m, int range) {
@@ -56,5 +40,9 @@ public class ConsiderIf {
         return state.getMyHeroes().values().stream()
                 .filter(h -> h.getId() != heroId)
                 .anyMatch(h -> h.getCurrentTarget().getEntity().getId() == m.getEntity().getId());
+    }
+
+    public static boolean isCurrentTarget(InteractionAttributes m) {
+        return m.getHero().getCurrentTarget().getEntity().getId() == m.getEntity().getId();
     }
 }

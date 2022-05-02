@@ -1,6 +1,8 @@
-package spring2022.behavior;
+package spring2022.behavior.impl;
 
 import spring2022.GameState;
+import spring2022.behavior.HeroBehavior;
+import spring2022.behavior.HeroClass;
 import spring2022.commands.HeroCommand;
 import spring2022.commands.HeroCommands;
 import spring2022.domain.Entity;
@@ -28,6 +30,7 @@ public class ManaHunterHeroBehavior implements HeroBehavior {
     public boolean considerEnemy(InteractionAttributes m) {
         return ConsiderIf.isMonster(m) &&
                 ConsiderIf.heroCanReachBeforeExitingMap(m, Constants.MELEE_RANGE) &&
+                //!ConsiderIf.isCurrentTarget(m) &&
                 !ConsiderIf.targetedByOtherHero(m) &&
                 !ConsiderIf.targetsEnemyBase(m);
     }
@@ -48,13 +51,16 @@ public class ManaHunterHeroBehavior implements HeroBehavior {
         Hero hero = interactionAttributes.getHero();
         if (entity.getHealth() > 10 && state.getRoundState().getMyMana() > 100 && interactionAttributes.getDistanceToHero() < 2200) {
             if (entity.getThreatFor() == Faction.ENEMY && entity.distanceTo(enemyBase) < 6000) {
-                hero.setCurrentTarget(InteractionAttributes.NVL);
                 return HeroCommands.shield(entity.getId());
             } else if (interactionAttributes.getDistanceToBase() > 5000) {
-                hero.setCurrentTarget(InteractionAttributes.NVL);
-                return HeroCommands.monsterAttack(entity.getId(), "Attack, my minion!");
+                return HeroCommands.monsterAttack(entity, "Attack, my minion!");
             }
         }
         return HeroCommands.attack(hero, interactionAttributes.getEntity());
+    }
+
+    @Override
+    public HeroClass getHeroClass() {
+        return HeroClass.MANA_HUNTER;
     }
 }

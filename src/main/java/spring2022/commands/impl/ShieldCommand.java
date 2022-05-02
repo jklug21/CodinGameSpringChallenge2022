@@ -1,4 +1,6 @@
-package spring2022.commands;
+package spring2022.commands.impl;
+
+import spring2022.commands.StationaryCommand;
 
 public class ShieldCommand extends StationaryCommand {
     private final Integer targetId;

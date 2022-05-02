@@ -1,8 +1,9 @@
 package spring2022.behavior;
 
-import java.util.function.Supplier;
 import lombok.Setter;
 import spring2022.util.Log;
+
+import java.util.function.Supplier;
 
 @Setter
 public class HeroBehaviorContainer {
@@ -16,6 +17,7 @@ public class HeroBehaviorContainer {
     public HeroBehaviorContainer(HeroClass mainClass, int id) {
         behavior = HeroBehaviorFactory.get(mainClass);
         this.id = id;
+        tempClass = null;
         tempBehavior = null;
         endCondition = null;
     }
@@ -26,6 +28,7 @@ public class HeroBehaviorContainer {
                 return tempBehavior;
             } else {
                 Log.log(this, id + ": Condition reached. Switching back to " + behavior.getClass().getSimpleName());
+                tempClass = null;
                 tempBehavior = null;
                 endCondition = null;
             }

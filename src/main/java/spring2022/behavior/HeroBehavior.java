@@ -12,4 +12,6 @@ public interface HeroBehavior {
     Coordinate getIdleCoordinate(int i);
 
     HeroCommand getNextAction(InteractionAttributes interactionAttributes);
+
+    HeroClass getHeroClass();
 }

@@ -20,6 +20,6 @@ public class EndCondition {
     }
 
     public static Supplier<Boolean> mana(int mana) {
-        return () -> GameState.get().getRoundState().getMyMana() >= mana;
+        return () -> GameState.get().getRoundState().getMyMana() < mana;
     }
 }

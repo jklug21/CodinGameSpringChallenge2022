@@ -1,6 +1,8 @@
-package spring2022.behavior;
+package spring2022.behavior.impl;
 
 import spring2022.GameState;
+import spring2022.behavior.HeroBehavior;
+import spring2022.behavior.HeroClass;
 import spring2022.commands.HeroCommand;
 import spring2022.commands.HeroCommands;
 import spring2022.domain.Entity;
@@ -43,7 +45,7 @@ public class HardDefensiveHeroBehavior implements HeroBehavior {
         GameState state = GameState.get();
         Coordinate ownBase = state.getOwnBase();
         if (interaction == null) {
-            return HeroCommands.move(getIdleCoordinate(0), "Holding");
+            return HeroCommands.move(getIdleCoordinate(0), "Holding1");
         }
         RoundState round = state.getRoundState();
         int mana = round.getMyMana();
@@ -51,9 +53,14 @@ public class HardDefensiveHeroBehavior implements HeroBehavior {
         Coordinate enemyBase = state.getEnemyBase();
 
         if (ownBase.distanceTo(hero.getPosition()) > 1280 && mana > Constants.SPELL_COST) {
-            return HeroCommands.move(getIdleCoordinate(0), "Holding");
+            return HeroCommands.move(getIdleCoordinate(0), "Holding2");
         } else {
             return HeroCommands.castWindTowards(enemyBase, "Woosh");
         }
+    }
+
+    @Override
+    public HeroClass getHeroClass() {
+        return HeroClass.HARD_DEFENDER;
     }
 }

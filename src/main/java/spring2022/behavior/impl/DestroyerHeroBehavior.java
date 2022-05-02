@@ -1,13 +1,17 @@
-package spring2022.behavior;
+package spring2022.behavior.impl;
 
 import spring2022.GameParameters;
 import spring2022.GameState;
+import spring2022.behavior.HeroBehavior;
+import spring2022.behavior.HeroClass;
 import spring2022.commands.HeroCommand;
 import spring2022.commands.HeroCommands;
 import spring2022.domain.Entity;
 import spring2022.domain.Faction;
 import spring2022.domain.Hero;
 import spring2022.domain.InteractionAttributes;
+import spring2022.strategy.Flags;
+import spring2022.util.ConsiderIf;
 import spring2022.util.Constants;
 import spring2022.util.Coordinate;
 import spring2022.util.Decision;
@@ -27,16 +31,16 @@ public class DestroyerHeroBehavior implements HeroBehavior {
 
     @Override
     public boolean considerEnemy(InteractionAttributes m) {
+//        return ConsiderIf.isMonster(m) &&
+//                ConsiderIf
+
         if (m.getEntity().getFaction() != Faction.MONSTER) {
             return false;
         }
-        if (m.getEntity().getId() == controlledLastRound) {
-            return false;
-        }
+//        if (m.getEntity().getId() == controlledLastRound) {
+//            return false;
+//        }
         Hero hero = m.getHero();
-        if (hero.getId() == 1 && m.getEntity().getId() == 43) {
-            Log.log(this, m.debug(hero));
-        }
         GameState state = GameState.get();
         double heroFromEnemyBase = hero.distanceTo(GameState.get().getEnemyBase());
         if (state.getRound() < 80) {
@@ -62,7 +66,7 @@ public class DestroyerHeroBehavior implements HeroBehavior {
     @Override
     public Coordinate getIdleCoordinate(int i) {
         Coordinate enemyBase = GameState.get().getEnemyBase();
-        return new Coordinate(Math.abs(enemyBase.getX() - 4000), Math.abs(enemyBase.getY() - 2600));
+        return new Coordinate(Math.abs(enemyBase.getX() - 5344), Math.abs(enemyBase.getY() - 2728));
     }
 
     @Override
@@ -72,22 +76,31 @@ public class DestroyerHeroBehavior implements HeroBehavior {
         Coordinate heroPos = m.getHero().getPosition();
         Entity entity = m.getEntity();
         int targetId = entity.getId();
-        if (entity.getThreatFor() != Faction.ENEMY && m.getHero().distanceTo(enemyBase) > 7000) {
-            controlledLastRound = targetId;
-            return HeroCommands.monsterAttack(targetId, "Chaaarge!");
-        } else if (entity.getThreatFor() == Faction.ENEMY && m.getDistanceToEnemyBase() <= 12 * 400) {
-            return HeroCommands.shield(targetId);
+        if (Flags.getInstance().isFlagRaised(Flags.ATTACK_OPPORTUNITY) && m.getHero().distanceTo(enemyBase) > 6000) {
+            return HeroCommands.move(getIdleCoordinate(0), "Engaging");
         } else {
             long monstersCloseby = state.getMonsters().values().stream().filter(mo -> mo.distanceTo(heroPos) < Constants.WIND_RANGE).count();
-            if (monstersCloseby > 4) {
+            if (m.getHero().distanceTo(enemyBase) < 6500 && monstersCloseby > 4) {
                 return HeroCommands.castWindTowards(enemyBase, "Surprise motherf*");
             }
-            if (controlledLastRound != targetId) {
+            if (entity.getThreatFor() == Faction.ENEMY && m.getDistanceToEnemyBase() <= 12 * 400) {
+                return HeroCommands.shield(targetId);
+            } else if (entity.getThreatFor() != Faction.ENEMY && m.getHero().distanceTo(enemyBase) > 7000) {
                 controlledLastRound = targetId;
-                return HeroCommands.monsterAttack(targetId, "Chaaarge!");
+                return HeroCommands.monsterAttack(entity, "Chaaarge!1");
             } else {
-                return HeroCommands.move(enemyBase, "Attacking");
+                if (controlledLastRound != targetId) {
+                    controlledLastRound = targetId;
+                    return HeroCommands.monsterAttack(entity, "Chaaarge!2");
+                } else {
+                    return HeroCommands.move(enemyBase, "Attacking");
+                }
             }
         }
+    }
+
+    @Override
+    public HeroClass getHeroClass() {
+        return HeroClass.DESTROYER;
     }
 }

@@ -14,6 +14,7 @@ import spring2022.domain.Hero;
 import spring2022.io.EntityData;
 import spring2022.io.InitialData;
 import spring2022.io.RoundState;
+import spring2022.strategy.BattlefieldAnalyzer;
 import spring2022.util.Coordinate;
 import spring2022.util.Helpers;
 
@@ -61,24 +62,6 @@ public class GameState {
                 .map(Entity::new)
                 .collect(Collectors.toMap(Entity::getId, e -> e)));
 
-        extrapolatePosition(monsters.values());
-
-        List<Entity> newMonsters = entities.stream().filter(e -> e.getFaction() == Faction.MONSTER)
-                .map(Entity::new).collect(Collectors.toList());
-
-        monsters = monsters.entrySet().stream()
-                // remove monsters that should be visible but are not
-                .filter(m -> newMonsters.contains(m.getValue()) ||
-                        !(myHeroes.values().stream().anyMatch(h -> h.canSee(m.getValue().getPosition())) ||
-                                ownBase.distanceTo(m.getValue().getPosition()) > 6000))
-                // remove monsters who left the map
-                .filter(this::insideMapArea)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-        // add/update actually seen monsters
-        monsters.putAll(newMonsters.stream()
-                .collect(Collectors.toMap(Entity::getId, e -> e)));
-
         Map<Integer, Hero> oldHeroes = myHeroes;
         myHeroes = entities.stream().filter(e -> e.getFaction() == Faction.OWN)
                 .map(Hero::new)
@@ -89,6 +72,27 @@ public class GameState {
                         .distanceTo(myHeroes.get(e.getKey()).getPosition()) > 10)
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
+
+        extrapolatePosition(monsters.values());
+
+        List<Entity> newMonsters = entities.stream().filter(e -> e.getFaction() == Faction.MONSTER)
+                .map(Entity::new).collect(Collectors.toList());
+
+        monsters = monsters.entrySet().stream()
+                // remove monsters that should be visible but are not
+                .filter(m -> {
+                    boolean newContains = newMonsters.contains(m.getValue());
+                    boolean heroCantSee = myHeroes.values().stream().noneMatch(h -> h.canSee(m.getValue().getPosition()));
+                    boolean baseCantSee = ownBase.distanceTo(m.getValue().getPosition()) > 6000;
+                    return newContains || (heroCantSee && baseCantSee);
+                })
+                // remove monsters who left the map
+                .filter(this::insideMapArea)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        // add/update actually seen monsters
+        monsters.putAll(newMonsters.stream()
+                .collect(Collectors.toMap(Entity::getId, e -> e)));
     }
 
     private boolean insideMapArea(Map.Entry<Integer, Entity> entity) {

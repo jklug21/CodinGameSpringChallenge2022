@@ -1,12 +1,13 @@
 package spring2022.domain;
 
-import java.util.Objects;
 import lombok.Getter;
 import lombok.Setter;
 import spring2022.GameState;
 import spring2022.io.EntityData;
 import spring2022.util.Coordinate;
 import spring2022.util.Helpers;
+
+import java.util.Objects;
 
 @Getter
 @Setter
@@ -16,10 +17,11 @@ public class Entity {
     private final Faction faction;
     private final int shieldLife;
     private final int isControlled;
-    private int health;
-    private final Coordinate velocity;
     private final int nearBase;
     private final Faction threatFor;
+
+    private int health;
+    private Coordinate velocity;
     private Coordinate position;
 
     public Entity(EntityData data) {

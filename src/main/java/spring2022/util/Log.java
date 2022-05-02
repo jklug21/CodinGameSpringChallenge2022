@@ -8,13 +8,13 @@ public class Log {
     }
 
     public static void log(String logger, String message) {
-        if (!GameParameters.CAPTURE_INPUTS) {
+        if (!GameParameters.isCaptureInputs()) {
             System.err.printf("%s: %s%n", logger, message);
         }
     }
 
     public static void captureInput(int input) {
-        if (GameParameters.CAPTURE_INPUTS) {
+        if (GameParameters.isCaptureInputs()) {
             System.err.println(input);
         }
     }

@@ -1,5 +1,6 @@
-package spring2022.commands;
+package spring2022.commands.impl;
 
+import spring2022.commands.HeroCommand;
 import spring2022.domain.Hero;
 import spring2022.util.Coordinate;
 

@@ -1,7 +1,9 @@
-package spring2022.behavior;
+package spring2022.behavior.impl;
 
 import spring2022.GameParameters;
 import spring2022.GameState;
+import spring2022.behavior.HeroBehavior;
+import spring2022.behavior.HeroClass;
 import spring2022.commands.HeroCommand;
 import spring2022.commands.HeroCommands;
 import spring2022.domain.Entity;
@@ -32,14 +34,13 @@ public class DefensiveHeroBehavior implements HeroBehavior {
 
     @Override
     public boolean considerEnemy(InteractionAttributes m) {
-        Entity entity = m.getEntity();
         boolean heroCanReachBeforeExitingMap = ConsiderIf.heroCanReachBeforeExitingMap(m, Constants.WIND_RANGE);
-        if (!heroCanReachBeforeExitingMap) {
-            Log.log(this, "Ignoring " + m.getEntity().getId());
-        }
+//        if (!heroCanReachBeforeExitingMap) {
+//            Log.log(this, "Ignoring " + m.getEntity().getId());
+//        }
 
-        return ConsiderIf.isMonster(entity) &&
-                ConsiderIf.targetsMe(entity) &&
+        return ConsiderIf.isMonster(m) &&
+                ConsiderIf.targetsMe(m) &&
                 heroCanReachBeforeExitingMap;
     }
 
@@ -65,15 +66,21 @@ public class DefensiveHeroBehavior implements HeroBehavior {
         Faction faction = entity.getFaction();
 
         if (faction == Faction.MONSTER &&
+                !interaction.getEntity().isShielded() &&
                 interaction.getDistanceToHero() < Constants.WIND_RANGE &&
                 (interaction.getDistanceToBase() - Constants.ENEMY_RANGE) < interaction.getSpeed() * 2 &&
                 mana >= Constants.SPELL_COST) {
-            return HeroCommands.castWindTowards(enemyBase, "Woosh");
+            return HeroCommands.castWindTowards(enemyBase, "Woosh1");
         } else if (Flags.getInstance().isFlagRaised(Flags.BASE_UNDER_ATTACK | Flags.WIND_STRIKE_POSSIBLE) &&
                 state.getAnalyzer().getCriticalMonsters().stream().anyMatch(m -> m.distanceTo(hero) < Constants.WIND_RANGE - 400)) {
-            return HeroCommands.castWindTowards(enemyBase, "Woosh");
+            return HeroCommands.castWindTowards(enemyBase, "Woosh2");
         } else {
             return HeroCommands.attack(hero, entity);
         }
+    }
+
+    @Override
+    public HeroClass getHeroClass() {
+        return HeroClass.DEFENDER;
     }
 }

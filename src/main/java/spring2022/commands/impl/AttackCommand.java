@@ -1,9 +1,11 @@
-package spring2022.commands;
+package spring2022.commands.impl;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import spring2022.commands.HeroCommand;
 import spring2022.domain.Entity;
 import spring2022.domain.Hero;
 import spring2022.util.Constants;

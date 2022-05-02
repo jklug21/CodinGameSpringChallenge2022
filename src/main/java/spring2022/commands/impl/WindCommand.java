@@ -1,5 +1,6 @@
-package spring2022.commands;
+package spring2022.commands.impl;
 
+import spring2022.commands.StationaryCommand;
 import spring2022.util.Coordinate;
 
 public class WindCommand extends StationaryCommand {

@@ -1,10 +1,12 @@
-package spring2022.strategy;
+package spring2022.strategy.impl;
 
 import java.util.ArrayList;
 import java.util.List;
 import spring2022.GameState;
 import spring2022.behavior.HeroBehaviorContainer;
 import spring2022.behavior.HeroClass;
+import spring2022.strategy.Flags;
+import spring2022.strategy.GameStrategy;
 import spring2022.util.EndCondition;
 import spring2022.util.Helpers;
 
